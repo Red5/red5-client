@@ -352,7 +352,6 @@ public class DSRemotingClient extends RemotingClient {
 		//blazeds my-polling-amf http://localhost:8400/meta/messagebroker/amfpolling
 		DSRemotingClient client = new DSRemotingClient("http://localhost:8400/meta/messagebroker/amfpolling");
 		try {
-			client.afterPropertiesSet();
 			//send ping
 			CommandMessage msg = new CommandMessage();
 			msg.setCorrelationId("");
