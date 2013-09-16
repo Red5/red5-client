@@ -29,7 +29,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/red5_server"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/red5-io"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
