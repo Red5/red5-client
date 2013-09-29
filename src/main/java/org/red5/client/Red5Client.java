@@ -31,7 +31,7 @@ public final class Red5Client {
 	/**
 	 * Current server version with revision
 	 */
-	public static final String VERSION = "Red5 Client 1.0.2 $Rev: 4445 $";
+	public static final String VERSION = "Red5 Client 1.0.2 RC1 $Rev: 4445 $";
 
 	/**
 	 * Create a new Red5Client object using the connection local to the current thread

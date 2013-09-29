@@ -31,21 +31,14 @@ public class RTMPClientConnManager extends RTMPConnManager {
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPClientConnManager.class);
 
+	static {
+		instance = new RTMPClientConnManager();
+	}
+	
 	private RTMPClientConnManager() {
 	}
 
-	public static RTMPClientConnManager getInstance() {
-		if (instance == null) {
-			instance = new RTMPClientConnManager();
-		}
-		return (RTMPClientConnManager) instance;
-	}
-
-	/**
-	 * Creates a connection of the type specified.
-	 * 
-	 * @param connCls
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public RTMPConnection createConnection(Class<?> connCls) {
 		RTMPConnection conn = null;
@@ -64,12 +57,8 @@ public class RTMPClientConnManager extends RTMPConnManager {
 		return conn;
 	}
 	
-	/**
-	 * Creates a connection of the type specified with associated session id.
-	 * 
-	 * @param connCls
-	 * @param sessionId
-	 */	
+	/** {@inheritDoc} */
+	@Override
 	public RTMPConnection createConnection(Class<?> connCls, String sessionId) {
 		RTMPConnection conn = null;
 		if (RTMPConnection.class.isAssignableFrom(connCls)) {
