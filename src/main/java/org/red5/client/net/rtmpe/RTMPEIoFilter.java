@@ -141,6 +141,7 @@ public class RTMPEIoFilter extends IoFilterAdapter {
 			if (!message.hasRemaining()) {
 				// Ignore empty buffers
 				log.debug("Buffer was empty");
+				nextFilter.filterWrite(session, request);
 			} else {
 				log.debug("Encrypting buffer: {}", message);
 				byte[] plain = new byte[message.remaining()];
