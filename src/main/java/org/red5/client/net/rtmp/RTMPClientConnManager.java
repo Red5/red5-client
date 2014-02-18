@@ -19,6 +19,7 @@
 package org.red5.client.net.rtmp;
 
 import org.red5.client.net.rtmpt.RTMPTClientConnection;
+import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
@@ -36,8 +37,21 @@ public class RTMPClientConnManager extends RTMPConnManager {
 	}
 	
 	private RTMPClientConnManager() {
+		log.trace("constructor");
 	}
 
+	/**
+	 * Used to retrieve a singleton for the RTMPClientConnManager.
+	 * 
+	 * @return
+	 */
+	public static IConnectionManager<RTMPConnection> getClientInstance() {
+		if (instance == null) {
+			instance = new RTMPClientConnManager();
+		}
+		return instance;
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public RTMPConnection createConnection(Class<?> connCls) {

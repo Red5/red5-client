@@ -225,7 +225,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	}
 
 	protected RTMPMinaConnection createRTMPMinaConnection() {
-		return (RTMPMinaConnection) RTMPClientConnManager.getInstance().createConnection(RTMPMinaConnection.class);
+		return (RTMPMinaConnection) RTMPClientConnManager.getClientInstance().createConnection(RTMPMinaConnection.class);
 	}
 
 	public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
@@ -338,18 +338,13 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	public class RTMPClientProtocolDecoder extends RTMPProtocolDecoder {
 
 		private static final int HANDSHAKE_SERVER_SIZE = (HANDSHAKE_SIZE * 2);
-
-		/**
-		 * Decodes server handshake message.
-		 * 
-		 * @param in IoBuffer
-		 * @return IoBuffer
-		 */
-		public IoBuffer decodeHandshake(IoBuffer in) {
+		
+		
+		public IoBuffer decodeHandshakeS1(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {
 			log.debug("decodeServerHandshake - buffer: {}", in);
-			RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
+//			RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
 			// get the local decode state
-			RTMPDecodeState state = conn.getDecoderState();
+//			RTMPDecodeState state = conn.getDecoderState();
 			final int remaining = in.remaining();
 			if (conn.getStateCode() == RTMP.STATE_CONNECT) {
 				if (remaining < HANDSHAKE_SERVER_SIZE + 1) {
@@ -363,19 +358,65 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 					conn.getState().setState(RTMP.STATE_HANDSHAKE);
 					return hs;
 				}
-			} else if (conn.getStateCode() == RTMP.STATE_HANDSHAKE) {
-				log.debug("Handshake reply");
-				if (remaining < HANDSHAKE_SERVER_SIZE) {
-					log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
-					state.bufferDecoding(HANDSHAKE_SERVER_SIZE);
-				} else {
-					in.skip(HANDSHAKE_SERVER_SIZE);
-					conn.getState().setState(RTMP.STATE_CONNECTED);
-					state.continueDecoding();
-				}
 			}
 			return null;
 		}
+		
+		public IoBuffer decodeHandshakeS2(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {
+			
+			final int remaining = in.remaining();
+			
+			log.debug("Handshake reply");
+			if (remaining < HANDSHAKE_SERVER_SIZE) {
+				log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
+				state.bufferDecoding(HANDSHAKE_SERVER_SIZE);
+			} else {
+				in.skip(HANDSHAKE_SERVER_SIZE);
+				conn.getState().setState(RTMP.STATE_CONNECTED);
+				state.continueDecoding();
+			}
+			
+			return null;
+		}
+
+		/**
+		 * Decodes server handshake message.
+		 * 
+		 * @param in IoBuffer
+		 * @return IoBuffer
+		 */
+//		public IoBuffer decodeHandshake(IoBuffer in) {
+//			log.debug("decodeServerHandshake - buffer: {}", in);
+//			RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
+//			// get the local decode state
+//			RTMPDecodeState state = conn.getDecoderState();
+//			final int remaining = in.remaining();
+//			if (conn.getStateCode() == RTMP.STATE_CONNECT) {
+//				if (remaining < HANDSHAKE_SERVER_SIZE + 1) {
+//					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
+//					state.bufferDecoding(HANDSHAKE_SERVER_SIZE + 1);
+//				} else {
+//					final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SERVER_SIZE);
+//					in.get(); // skip the header byte
+//					BufferUtils.put(hs, in, HANDSHAKE_SERVER_SIZE);
+//					hs.flip();
+//					conn.getState().setState(RTMP.STATE_HANDSHAKE);
+//					return hs;
+//				}
+//			} else if (conn.getStateCode() == RTMP.STATE_HANDSHAKE) {
+//				log.debug("Handshake reply");
+//				if (remaining < HANDSHAKE_SERVER_SIZE) {
+//					log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
+//					state.bufferDecoding(HANDSHAKE_SERVER_SIZE);
+//				} else {
+//					in.skip(HANDSHAKE_SERVER_SIZE);
+//					conn.getState().setState(RTMP.STATE_CONNECTED);
+//					state.continueDecoding();
+//				}
+//			}
+//			return null;
+//		}
+		
 	}
 
 	/**
