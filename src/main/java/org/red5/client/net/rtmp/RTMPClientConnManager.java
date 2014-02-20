@@ -20,7 +20,6 @@ package org.red5.client.net.rtmp;
 
 import org.red5.client.net.rtmpt.RTMPTClientConnection;
 import org.red5.server.net.IConnectionManager;
-import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmpt.RTMPTConnection;
