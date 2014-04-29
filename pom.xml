@@ -12,13 +12,13 @@
 	<inceptionYear>2005</inceptionYear>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>3.1.1.RELEASE</spring.version>
+		<spring.version>4.0.3.RELEASE</spring.version>
 		<slf4j.version>1.7.5</slf4j.version>
 		<mina.version>2.0.7</mina.version>
 		<logback.version>1.0.13</logback.version>
 		<junit.version>4.11</junit.version>
-		<red5-io.version>1.0.2</red5-io.version>
-		<red5-server.version>1.0.2-RC3</red5-server.version>
+		<red5-io.version>1.0.3</red5-io.version>
+		<red5-server.version>1.0.2</red5-server.version>
 		<javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
 	</properties>
 	<scm>
@@ -113,7 +113,7 @@
 						<link>http://download.oracle.com/javase/6/docs/api</link>
 						<link>http://jetty.codehaus.org/jetty/jetty-6/apidocs</link>
 						<link>http://mina.apache.org/report/trunk/apidocs</link>
-						<link>http://static.springsource.org/spring/docs/3.0.x/api</link>
+						<link>http://docs.spring.io/spring/docs/4.0.x/javadoc-api</link>
 						<link>http://www.slf4j.org/api</link>
 						<link>http://logging.apache.org/log4j/1.2/apidocs</link>
 						<link>http://groovy.codehaus.org/api</link>
@@ -299,17 +299,17 @@
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>	 
-        <dependency>
-            <groupId>org.red5</groupId>
-            <artifactId>red5-server</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.red5</groupId>
-                    <artifactId>red5-client</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>       
-     	<dependency>
+        	<dependency>
+            		<groupId>org.red5</groupId>
+            		<artifactId>red5-server</artifactId>
+            		<exclusions>
+                		<exclusion>
+                    			<groupId>org.red5</groupId>
+                    			<artifactId>red5-client</artifactId>
+                		</exclusion>
+            		</exclusions>
+        	</dependency>       
+     		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
