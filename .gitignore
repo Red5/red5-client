@@ -6,4 +6,6 @@
 *.ear
 /target
 /.settings
+.classpath
+.project
 /log
