@@ -7,7 +7,7 @@
 	<name>Red5 :: Client</name>
 	<description>The Red5 client</description>
 	<groupId>org.red5</groupId>
-	<version>1.0.2-RC2</version>
+	<version>1.0.3-SNAPSHOT</version>
 	<url>https://code.google.com/p/red5/</url>
 	<inceptionYear>2005</inceptionYear>
 	<properties>
@@ -17,8 +17,8 @@
 		<mina.version>2.0.7</mina.version>
 		<logback.version>1.0.13</logback.version>
 		<junit.version>4.11</junit.version>
-		<red5-io.version>1.0.2-RELEASE</red5-io.version>
-		<red5-server.version>1.0.2-RELEASE</red5-server.version>
+		<red5-io.version>1.0.4-SNAPSHOT</red5-io.version>
+		<red5-server.version>1.0.3-SNAPSHOT</red5-server.version>
 		<javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
 	</properties>
 	<scm>
