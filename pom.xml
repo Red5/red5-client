@@ -112,7 +112,6 @@
 					<links>
 						<link>http://download.oracle.com/javase/6/docs/api</link>
 						<link>http://jetty.codehaus.org/jetty/jetty-6/apidocs</link>
-						<link>http://mina.apache.org/report/trunk/apidocs</link>
 						<link>http://docs.spring.io/spring/docs/4.0.x/javadoc-api</link>
 						<link>http://www.slf4j.org/api</link>
 						<link>http://logging.apache.org/log4j/1.2/apidocs</link>
