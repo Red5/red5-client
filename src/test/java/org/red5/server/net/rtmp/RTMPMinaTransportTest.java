@@ -1,9 +1,6 @@
 package org.red5.server.net.rtmp;
 
 import static org.junit.Assert.assertNotNull;
-
-import java.net.InetSocketAddress;
-
 import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
 import net.sourceforge.groboutils.junit.v1.TestRunnable;
 
@@ -72,7 +69,7 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		mina.setMaxProcessorPoolSize(256);
 		mina.setExecutorKeepAliveTime(30000);
 		// create an address
-		mina.setConnector(new InetSocketAddress("0.0.0.0", 1935));
+		mina.setAddress("0.0.0.0:1935");
 		// start
 		mina.start();
 		// create some clients
