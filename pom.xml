@@ -7,9 +7,21 @@
 	<name>Red5 :: Client</name>
 	<description>The Red5 client</description>
 	<groupId>org.red5</groupId>
-	<version>1.0.3-RELEASE</version>
+	<version>1.0.3-RELEASE</version>li
 	<url>https://code.google.com/p/red5/</url>
 	<inceptionYear>2005</inceptionYear>
+	<organization>
+		<name>Red5</name>
+		<url>https://github.com/Red5</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>4.0.6.RELEASE</spring.version>
