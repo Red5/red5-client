@@ -7,7 +7,7 @@
 	<name>Red5 :: Client</name>
 	<description>The Red5 client</description>
 	<groupId>org.red5</groupId>
-	<version>1.0.3-RELEASE</version>li
+	<version>1.0.3-RELEASE</version>
 	<url>https://code.google.com/p/red5/</url>
 	<inceptionYear>2005</inceptionYear>
 	<organization>
@@ -510,4 +510,3 @@
 		</dependency>
 	</dependencies>
 </project>
-
