@@ -7,7 +7,7 @@
 	<name>Red5 :: Client</name>
 	<description>The Red5 client</description>
 	<groupId>org.red5</groupId>
-	<version>1.0.3-RELEASE</version>
+	<version>1.0.4-SNAPSHOT</version>
 	<url>https://code.google.com/p/red5/</url>
 	<inceptionYear>2005</inceptionYear>
 	<organization>
@@ -30,7 +30,8 @@
 		<mina.version>2.0.7</mina.version>
 		<junit.version>4.11</junit.version>
 		<red5-io.version>1.0.4-SNAPSHOT</red5-io.version>
-		<red5-server.version>1.0.3-RELEASE</red5-server.version>
+		<red5-server.version>1.0.4-SNAPSHOT</red5-server.version>
+		<bc.version>1.51</bc.version>
 		<javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
 	</properties>
 	<scm>
@@ -372,7 +373,7 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.47</version>
+			<version>${bc.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-beanutils</groupId>
