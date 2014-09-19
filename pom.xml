@@ -285,7 +285,6 @@
 				<artifactId>red5-server</artifactId>
 				<version>${red5-server.version}</version>
 				<exclusions>
-					<exclusion></exclusion>
 					<exclusion>
 						<groupId>org.red5</groupId>
 						<artifactId>red5-client</artifactId>
