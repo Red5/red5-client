@@ -31,6 +31,14 @@ public class RTMPClientConnManager extends RTMPConnManager {
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPClientConnManager.class);
 
+	private static int maxHandshakeTimeout = 7000;
+	
+	private static int maxInactivity = 60000;
+	
+	private static int pingInterval = 0;
+	
+	private static int executorQueueCapacity = 32;
+	
 	static {
 		instance = new RTMPClientConnManager();
 	}
@@ -110,18 +118,34 @@ public class RTMPClientConnManager extends RTMPConnManager {
 		} else {
 			conn = (RTMPConnection) cls.newInstance();
 		}
-		conn.setMaxHandshakeTimeout(7000);
-		conn.setMaxInactivity(60000);
-		conn.setPingInterval(0);
+		conn.setMaxHandshakeTimeout(maxHandshakeTimeout);
+		conn.setMaxInactivity(maxInactivity);
+		conn.setPingInterval(pingInterval);
 		// setup executor
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(1);
 		executor.setDaemon(true);
 		executor.setMaxPoolSize(1);
-		executor.setQueueCapacity(16);
+		executor.setQueueCapacity(executorQueueCapacity);
 		executor.initialize();
 		conn.setExecutor(executor);
 		return conn;
+	}
+
+	public static void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
+		RTMPClientConnManager.maxHandshakeTimeout = maxHandshakeTimeout;
+	}
+
+	public static void setMaxInactivity(int maxInactivity) {
+		RTMPClientConnManager.maxInactivity = maxInactivity;
+	}
+
+	public static void setPingInterval(int pingInterval) {
+		RTMPClientConnManager.pingInterval = pingInterval;
+	}
+
+	public static void setExecutorQueueCapacity(int executorQueueCapacity) {
+		RTMPClientConnManager.executorQueueCapacity = executorQueueCapacity;
 	}
 
 }
