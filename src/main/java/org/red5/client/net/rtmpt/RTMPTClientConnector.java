@@ -76,11 +76,7 @@ class RTMPTClientConnector extends Thread {
 	private volatile boolean stopRequested = false;
 
 	{
-		// http://hc.apache.org/httpclient-3.x/preference-api.html
 		httpClient = HttpConnectionUtil.getClient();
-		httpClient.getParams().setParameter("http.protocol.version", HttpVersion.HTTP_1_1);
-		//httpClient.getParams().setParameter("http.protocol.content-charset", "UTF-8");
-		//httpClient.getParams().setParameter("http.socket.timeout", new Integer(1000));
 	}
 	
 	public RTMPTClientConnector(String server, int port, RTMPTClient client) {
@@ -201,6 +197,7 @@ class RTMPTClientConnector extends Thread {
 
 	private HttpPost getPost(String uri) {
 		HttpPost post = new HttpPost(uri);
+		post.setProtocolVersion(HttpVersion.HTTP_1_1);
 		return post;
 	}
 	

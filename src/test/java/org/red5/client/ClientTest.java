@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.red5.client.net.rtmp.ClientExceptionHandler;
 import org.red5.client.net.rtmp.RTMPClient;
-import org.red5.client.net.rtmpt.RTMPTClient;
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
