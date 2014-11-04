@@ -18,122 +18,46 @@
 
 package org.red5.client.net.rtmp;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.management.JMX;
-import javax.management.ObjectName;
-
-import org.apache.mina.core.session.IoSession;
+import org.red5.client.net.rtmpt.RTMPTClientConnection;
 import org.red5.server.api.Red5;
-import org.red5.server.api.scope.IBasicScope;
-import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
 import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * Responsible for management and creation of RTMP based connections.
  * 
  * @author The Red5 Project
  */
-public class RTMPConnManager implements IConnectionManager<RTMPConnection>, ApplicationContextAware, DisposableBean {
+public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
 
-	protected static ApplicationContext applicationContext;
+	private static int maxHandshakeTimeout = 7000;
+	
+	private static int maxInactivity = 60000;
+	
+	private static int pingInterval = 0;
+	
+	private static int executorQueueCapacity = 32;
 
-	private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, new CustomizableThreadFactory("ConnectionChecker-"));
+	protected static IConnectionManager<RTMPConnection> instance = new RTMPConnManager();
 
 	protected ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<String, RTMPConnection>();
 
 	protected AtomicInteger conns = new AtomicInteger();
-
-	protected static IConnectionManager<RTMPConnection> instance;
-
-	protected boolean debug;
 	
-//	{
-//		// create a scheduled job to check for dead or hung connections
-//		executor.scheduleAtFixedRate(new Runnable() {
-//			public void run() {				
-//				// count the connections that need closing
-//				int closedConnections = 0;
-//				// get all the current connections
-//				Collection<RTMPConnection> allConns = getAllConnections();
-//				log.debug("Checking {} connections", allConns.size());
-//				for (RTMPConnection conn : allConns) {
-//					if (log.isTraceEnabled()) {
-//						log.trace("{} session: {} state: {} keep-alive running: {}", new Object[] { conn.getClass().getSimpleName(), conn.getSessionId(), conn.getState().states[conn.getStateCode()], conn.running });
-//						log.trace("Decoder lock - permits: {} queue length: {}", conn.decoderLock.availablePermits(), conn.decoderLock.getQueueLength());
-//						log.trace("Encoder lock - permits: {} queue length: {}", conn.encoderLock.availablePermits(), conn.encoderLock.getQueueLength());
-//						log.trace("Client streams: {} used: {}", conn.getStreams().size(), conn.getUsedStreamCount());
-//						log.trace("Attributes: {}", conn.getAttributes());
-//						Iterator<IBasicScope> scopes = conn.getBasicScopes();
-//						while (scopes.hasNext()) {
-//							IBasicScope scope = scopes.next();
-//							log.trace("Scope: {}", scope);
-//						}
-//					}
-//					long ioTime = 0L;
-//					if (conn instanceof RTMPMinaConnection) {
-//						IoSession session = ((RTMPMinaConnection) conn).getIoSession();
-//						ioTime = System.currentTimeMillis() - session.getLastIoTime();
-//						if (log.isTraceEnabled()) {
-//							log.trace("Session - write queue: {} last io time: {} ms", session.getWriteRequestQueue().size(), ioTime);
-//							log.trace("Managed session count: {}", session.getService().getManagedSessionCount());
-//						}
-//						// clear the write queue
-//						session.getWriteRequestQueue().clear(session);
-//					} else if (conn instanceof RTMPTConnection) {
-//						ioTime = System.currentTimeMillis() - ((RTMPTConnection) conn).getLastDataReceived();			
-//					}
-//					// if exceeds max inactivity kill and clean up
-//					if (ioTime >= conn.maxInactivity) {
-//						log.warn("Connection {} has exceeded the max inactivity threshold", conn.getSessionId());
-//						conn.onInactive();
-//						if (!conn.isClosed()) {
-//							log.debug("Connection {} is not closed", conn.getSessionId());
-//						}
-//						closedConnections++;
-//					}
-//				}
-//				// if there is more than one connection that needed to be closed, request a GC to clean up memory.
-//				if (closedConnections > 0) {
-//					System.gc();
-//				}
-//			}
-//		}, 7000, 30000, TimeUnit.MILLISECONDS);
-//	}
-
 	public static IConnectionManager<RTMPConnection> getInstance() {
-		if (instance == null) {
-			log.trace("Connection manager instance does not exist");
-			if (applicationContext != null && applicationContext.containsBean("rtmpConnManager")) {
-				log.trace("Connection manager bean exists");
-				instance = (RTMPConnManager) applicationContext.getBean("rtmpConnManager");
-			} else {
-				log.trace("Connection manager bean doesnt exist, creating new instance");
-				instance = new RTMPConnManager();
-			}
-		}
 		return instance;
 	}
 
@@ -147,23 +71,34 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 				// add to local map
 				connMap.put(conn.getSessionId(), conn);
 				log.trace("Connections: {}", conns.incrementAndGet());
-				// set the scheduler
-				if (applicationContext.containsBean("rtmpScheduler") && conn.getScheduler() == null) {
-					conn.setScheduler((ThreadPoolTaskScheduler) applicationContext.getBean("rtmpScheduler"));
-				}
-				log.debug("Connection created: {}", conn);
-				// start the wait for handshake
-				conn.startWaitForHandshake();
+				log.trace("Connection created: {}", conn);
 			} catch (Exception ex) {
 				log.warn("Exception creating connection", ex);
 			}
 		}
 		return conn;
 	}
-
+	
 	/** {@inheritDoc} */
 	public RTMPConnection createConnection(Class<?> connCls, String sessionId) {
-		throw new UnsupportedOperationException("Not implemented");
+		RTMPConnection conn = null;
+		if (RTMPConnection.class.isAssignableFrom(connCls)) {
+			try {
+				// create connection
+				conn = createConnectionInstance(connCls);
+				// set the session id
+				if (conn instanceof RTMPTClientConnection) {
+					((RTMPTClientConnection) conn).setSessionId(sessionId);
+				}
+				// add to local map
+				connMap.put(conn.getSessionId(), conn);
+				log.trace("Connections: {}", conns.incrementAndGet());
+				log.trace("Connection created: {}", conn);
+			} catch (Exception ex) {
+				log.warn("Exception creating connection", ex);
+			}
+		}
+		return conn;
 	}
 
 	/**
@@ -179,18 +114,6 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 			id = conn.getSessionId().hashCode();
 		}
 		log.debug("Connection id: {} session id hash: {}", conn.getId(), conn.getSessionId().hashCode());
-		if (debug) {
-			log.info("Connection count (map): {}", connMap.size());
-			try {
-				RTMPMinaTransportMXBean proxy = JMX.newMXBeanProxy(ManagementFactory.getPlatformMBeanServer(), new ObjectName("org.red5.server:type=RTMPMinaTransport"),
-						RTMPMinaTransportMXBean.class, true);
-				if (proxy != null) {
-					log.info("{}", proxy.getStatistics());
-				}
-			} catch (Exception e) {
-				log.warn("Error on jmx lookup", e);
-			}
-		}
 	}
 
 	/**
@@ -272,7 +195,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 		conns.set(0);
 		return list;
 	}
-
+	
 	/**
 	 * Creates a connection instance based on the supplied type.
 	 * 
@@ -283,28 +206,40 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 	public RTMPConnection createConnectionInstance(Class<?> cls) throws Exception {
 		RTMPConnection conn = null;
 		if (cls == RTMPMinaConnection.class) {
-			conn = (RTMPMinaConnection) applicationContext.getBean(RTMPMinaConnection.class);
+			conn = (RTMPMinaConnection) cls.newInstance();
 		} else if (cls == RTMPTConnection.class) {
-			conn = (RTMPTConnection) applicationContext.getBean(RTMPTConnection.class);
+			conn = (RTMPTClientConnection) cls.newInstance();
 		} else {
 			conn = (RTMPConnection) cls.newInstance();
 		}
+		conn.setMaxHandshakeTimeout(maxHandshakeTimeout);
+		conn.setMaxInactivity(maxInactivity);
+		conn.setPingInterval(pingInterval);
+		// setup executor
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(1);
+		executor.setDaemon(true);
+		executor.setMaxPoolSize(1);
+		executor.setQueueCapacity(executorQueueCapacity);
+		executor.initialize();
+		conn.setExecutor(executor);
 		return conn;
 	}
 
-	/**
-	 * @param debug the debug to set
-	 */
-	public void setDebug(boolean debug) {
-		this.debug = debug;
+	public static void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
+		RTMPConnManager.maxHandshakeTimeout = maxHandshakeTimeout;
 	}
 
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		RTMPConnManager.applicationContext = applicationContext;
+	public static void setMaxInactivity(int maxInactivity) {
+		RTMPConnManager.maxInactivity = maxInactivity;
 	}
 
-	public void destroy() throws Exception {
-		executor.shutdownNow();
+	public static void setPingInterval(int pingInterval) {
+		RTMPConnManager.pingInterval = pingInterval;
+	}
+
+	public static void setExecutorQueueCapacity(int executorQueueCapacity) {
+		RTMPConnManager.executorQueueCapacity = executorQueueCapacity;
 	}
 
 }

@@ -35,7 +35,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.DummySession;
 import org.apache.mina.core.session.IoSession;
-import org.red5.client.net.rtmp.RTMPClientConnManager;
+import org.red5.client.net.rtmp.RTMPConnManager;
 import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
@@ -63,7 +63,7 @@ class RTMPTClientConnector extends Thread {
 	 */
 	private static final int SEND_TARGET_SIZE = 32768;
 
-	private final HttpClient httpClient = HttpConnectionUtil.getClient();
+	private final HttpClient httpClient;
 
 	private final HttpHost targetHost;
 
@@ -75,6 +75,14 @@ class RTMPTClientConnector extends Thread {
 
 	private volatile boolean stopRequested = false;
 
+	{
+		// http://hc.apache.org/httpclient-3.x/preference-api.html
+		httpClient = HttpConnectionUtil.getClient();
+		httpClient.getParams().setParameter("http.protocol.version", HttpVersion.HTTP_1_1);
+		//httpClient.getParams().setParameter("http.protocol.content-charset", "UTF-8");
+		//httpClient.getParams().setParameter("http.socket.timeout", new Integer(1000));
+	}
+	
 	public RTMPTClientConnector(String server, int port, RTMPTClient client) {
 		targetHost = new HttpHost(server, port, "http");
 		this.client = client;
@@ -167,7 +175,7 @@ class RTMPTClientConnector extends Thread {
 			sessionId = responseStr.substring(0, responseStr.length() - 1);
 			log.debug("Got an id {}", sessionId);		
 			// create a new connection
-			conn = (RTMPTClientConnection) RTMPClientConnManager.getInstance().createConnection(RTMPTClientConnection.class, sessionId);
+			conn = (RTMPTClientConnection) RTMPConnManager.getInstance().createConnection(RTMPTClientConnection.class, sessionId);
 			log.debug("Got session id {} from connection", conn.getSessionId());			
 			// client state
 			conn.setHandler(client);
@@ -193,7 +201,6 @@ class RTMPTClientConnector extends Thread {
 
 	private HttpPost getPost(String uri) {
 		HttpPost post = new HttpPost(uri);
-		post.setProtocolVersion(HttpVersion.HTTP_1_1);
 		return post;
 	}
 	

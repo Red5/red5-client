@@ -148,21 +148,6 @@
 				<version>2.3.7</version>
 				<extensions>true</extensions>
 			</plugin>
-			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>buildnumber-maven-plugin</artifactId> 
-				<version>1.1</version> <executions> <execution> <phase>validate</phase> <goals> 
-				<goal>create</goal> </goals> </execution> </executions> <configuration> <doCheck>false</doCheck> 
-				<doUpdate>true</doUpdate> </configuration> </plugin> <plugin> <artifactId>maven-scm-plugin</artifactId> 
-				<version>1.8.1</version> <configuration> <connectionType>connection</connectionType> 
-				</configuration> </plugin> <plugin> <groupId>com.github.github</groupId> 
-				<artifactId>downloads-maven-plugin</artifactId> <configuration> <description>Official 
-				${project.name} build of the ${project.version} release</description> <override>true</override> 
-				<includeAttached>true</includeAttached> <server>github</server> </configuration> 
-				<executions> <execution> <goals> <goal>upload</goal> </goals> <phase>install</phase> 
-				</execution> </executions> </plugin> <plugin> <groupId>com.github.github</groupId> 
-				<artifactId>site-maven-plugin</artifactId> <configuration> <message>Building 
-				site for ${project.version}</message> <server>github</server> </configuration> 
-				<executions> <execution> <goals> <goal>site</goal> </goals> <phase>site</phase> 
-				</execution> </executions> </plugin> -->
 		</plugins>
 		<resources>
 			<resource>
@@ -410,12 +395,10 @@
 		<dependency>
 			<groupId>net.sourceforge.groboutils</groupId>
 			<artifactId>groboutils-core</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
