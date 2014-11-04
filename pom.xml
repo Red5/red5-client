@@ -7,9 +7,21 @@
 	<name>Red5 :: Client</name>
 	<description>The Red5 client</description>
 	<groupId>org.red5</groupId>
-	<version>1.0.3-RELEASE</version>
+	<version>1.0.4-SNAPSHOT</version>
 	<url>https://code.google.com/p/red5/</url>
 	<inceptionYear>2005</inceptionYear>
+	<organization>
+		<name>Red5</name>
+		<url>https://github.com/Red5</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>4.0.6.RELEASE</spring.version>
@@ -18,14 +30,15 @@
 		<mina.version>2.0.7</mina.version>
 		<junit.version>4.11</junit.version>
 		<red5-io.version>1.0.4-SNAPSHOT</red5-io.version>
-		<red5-server.version>1.0.3-RELEASE</red5-server.version>
+		<red5-server.version>1.0.4-SNAPSHOT</red5-server.version>
+		<bc.version>1.51</bc.version>
 		<javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
 	</properties>
 	<scm>
 		<url>https://github.com/mondain/red5-client</url>
 		<connection>scm:git:git://github.com/mondain/red5-client.git</connection>
-		<developerConnection>scm:git:git@github.com:mondain/red5-client.git</developerConnection>		
-	</scm>	
+		<developerConnection>scm:git:git@github.com:mondain/red5-client.git</developerConnection>
+	</scm>
 	<build>
 		<defaultGoal>install</defaultGoal>
 		<directory>${basedir}/target</directory>
@@ -135,66 +148,21 @@
 				<version>2.3.7</version>
 				<extensions>true</extensions>
 			</plugin>
-			<!--
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.1</version>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<doCheck>false</doCheck>
-					<doUpdate>true</doUpdate>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-scm-plugin</artifactId>
-				<version>1.8.1</version>
-				<configuration>
-					<connectionType>connection</connectionType>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.github.github</groupId>
-				<artifactId>downloads-maven-plugin</artifactId>
-				<configuration>
-					<description>Official ${project.name} build of the ${project.version} release</description>
-					<override>true</override>
-					<includeAttached>true</includeAttached>
-					<server>github</server>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>upload</goal>
-						</goals>
-						<phase>install</phase>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.github.github</groupId>
-				<artifactId>site-maven-plugin</artifactId>
-				<configuration>
-					<message>Building site for ${project.version}</message>
-					<server>github</server>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>site</goal>
-						</goals>
-						<phase>site</phase>
-					</execution>
-				</executions>
-			</plugin>			
-			-->
+			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>buildnumber-maven-plugin</artifactId> 
+				<version>1.1</version> <executions> <execution> <phase>validate</phase> <goals> 
+				<goal>create</goal> </goals> </execution> </executions> <configuration> <doCheck>false</doCheck> 
+				<doUpdate>true</doUpdate> </configuration> </plugin> <plugin> <artifactId>maven-scm-plugin</artifactId> 
+				<version>1.8.1</version> <configuration> <connectionType>connection</connectionType> 
+				</configuration> </plugin> <plugin> <groupId>com.github.github</groupId> 
+				<artifactId>downloads-maven-plugin</artifactId> <configuration> <description>Official 
+				${project.name} build of the ${project.version} release</description> <override>true</override> 
+				<includeAttached>true</includeAttached> <server>github</server> </configuration> 
+				<executions> <execution> <goals> <goal>upload</goal> </goals> <phase>install</phase> 
+				</execution> </executions> </plugin> <plugin> <groupId>com.github.github</groupId> 
+				<artifactId>site-maven-plugin</artifactId> <configuration> <message>Building 
+				site for ${project.version}</message> <server>github</server> </configuration> 
+				<executions> <execution> <goals> <goal>site</goal> </goals> <phase>site</phase> 
+				</execution> </executions> </plugin> -->
 		</plugins>
 		<resources>
 			<resource>
@@ -267,21 +235,21 @@
 	</repositories>
 	<dependencyManagement>
 		<dependencies>
-		    <dependency>
+			<dependency>
 				<groupId>org.red5</groupId>
 				<artifactId>red5-server</artifactId>
 				<version>${red5-server.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.red5</groupId>
+						<artifactId>red5-client</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
 				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.mina</groupId>
-				<artifactId>mina-parent</artifactId>
-				<version>${mina.version}</version>
-				<type>pom</type>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
@@ -297,18 +265,18 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<dependencies>	 
-        <dependency>
-        	<groupId>org.red5</groupId>
-        	<artifactId>red5-server</artifactId>
-        	<exclusions>
-           		<exclusion>
-           			<groupId>org.red5</groupId>
-           			<artifactId>red5-client</artifactId>
-           		</exclusion>
-        	</exclusions>
-        </dependency>       
-     	<dependency>
+	<dependencies>
+		<dependency>
+			<groupId>org.red5</groupId>
+			<artifactId>red5-server</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.red5</groupId>
+					<artifactId>red5-client</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
@@ -340,32 +308,14 @@
 			<type>bundle</type>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.mina</groupId>
-			<artifactId>mina-integration-jmx</artifactId>
-			<version>${mina.version}</version>
-			<type>bundle</type>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.mina</groupId>
-					<artifactId>mina-integration-ognl</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.mina</groupId>
-			<artifactId>mina-integration-beans</artifactId>
-			<version>${mina.version}</version>
-			<type>bundle</type>
-		</dependency>
-		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.47</version>
+			<version>${bc.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.8.3</version>
+			<version>1.9.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
@@ -376,42 +326,37 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.6</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>20040616</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
-			<version>4.2.1</version>
+			<version>4.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.2.1</version>
+			<version>4.3.5</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-codec</artifactId>
+					<groupId>commons-codec</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.1</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-pool</groupId>
-			<artifactId>commons-pool</artifactId>
-			<version>1.5.6</version>
+			<version>3.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>${slf4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.transaction</groupId>
-			<artifactId>jta</artifactId>
-			<version>1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -422,11 +367,6 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>
 			<version>${slf4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.quartz-scheduler</groupId>
-			<artifactId>quartz</artifactId>
-			<version>2.1.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -451,15 +391,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>${spring.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache-core</artifactId>
+			<version>2.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -476,26 +410,12 @@
 		<dependency>
 			<groupId>net.sourceforge.groboutils</groupId>
 			<artifactId>groboutils-core</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-			<version>2.9.1</version>
-		</dependency>
-		<dependency>
-			<groupId>xmlrpc</groupId>
-			<artifactId>xmlrpc</artifactId>
-			<version>2.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache-core</artifactId>
-			<version>2.5.0</version>
-		</dependency>
-		<dependency>
-		   <groupId>junit</groupId>
-		   <artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
-

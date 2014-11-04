@@ -27,11 +27,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ParseException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.util.EntityUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.DummySession;
@@ -64,7 +63,7 @@ class RTMPTClientConnector extends Thread {
 	 */
 	private static final int SEND_TARGET_SIZE = 32768;
 
-	private final DefaultHttpClient httpClient = HttpConnectionUtil.getClient();
+	private final HttpClient httpClient = HttpConnectionUtil.getClient();
 
 	private final HttpHost targetHost;
 
@@ -78,7 +77,6 @@ class RTMPTClientConnector extends Thread {
 
 	public RTMPTClientConnector(String server, int port, RTMPTClient client) {
 		targetHost = new HttpHost(server, port, "http");
-		httpClient.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
 		this.client = client;
 	}
 
@@ -156,7 +154,7 @@ class RTMPTClientConnector extends Thread {
 
 	private RTMPTClientConnection openConnection() throws IOException {
 		RTMPTClientConnection conn = null;
-		HttpPost openPost = new HttpPost("/open/1");
+		HttpPost openPost = getPost("/open/1");
 		setCommonHeaders(openPost);
 		openPost.setEntity(ZERO_REQUEST_ENTITY);
 		// execute
@@ -187,14 +185,20 @@ class RTMPTClientConnector extends Thread {
 
 	private void finalizeConnection() throws IOException {
 		log.debug("Sending close post");
-		HttpPost closePost = new HttpPost(makeUrl("close"));
+		HttpPost closePost = getPost(makeUrl("close"));
 		closePost.setEntity(ZERO_REQUEST_ENTITY);
 		HttpResponse response = httpClient.execute(targetHost, closePost);
 		EntityUtils.consume(response.getEntity());
 	}
 
+	private HttpPost getPost(String uri) {
+		HttpPost post = new HttpPost(uri);
+		post.setProtocolVersion(HttpVersion.HTTP_1_1);
+		return post;
+	}
+	
 	private HttpPost makePost(String command) {
-		HttpPost post = new HttpPost(makeUrl(command));
+		HttpPost post = getPost(makeUrl(command));
 		setCommonHeaders(post);
 		return post;
 	}
