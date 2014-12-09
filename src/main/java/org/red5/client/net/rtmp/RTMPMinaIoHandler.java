@@ -428,7 +428,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		 * Encode notification event and fill given byte buffer.
 		 *
 		 * @param out               Byte buffer to fill
-		 * @param invoke            Notification event
+		 * @param command           Notification event
 		 */
 		@Override
 		protected void encodeCommand(IoBuffer out, ICommand command) {
