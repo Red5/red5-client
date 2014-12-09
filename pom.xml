@@ -27,10 +27,10 @@
 		<spring.version>4.0.6.RELEASE</spring.version>
 		<slf4j.version>1.7.7</slf4j.version>
 		<logback.version>1.1.2</logback.version>
-		<mina.version>2.0.7</mina.version>
+		<mina.version>2.0.8</mina.version>
 		<junit.version>4.11</junit.version>
+		<red5-common.version>1.0.4-SNAPSHOT</red5-common.version>
 		<red5-io.version>1.0.4-SNAPSHOT</red5-io.version>
-		<red5-server.version>1.0.4-SNAPSHOT</red5-server.version>
 		<bc.version>1.51</bc.version>
 		<javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
 	</properties>
@@ -57,17 +57,18 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.7</target>
+					<compilerVersion>1.6</compilerVersion>
 					<fork>true</fork>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
+				<version>2.4</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -81,7 +82,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
+				<version>2.5</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -96,12 +97,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.4</version>
+				<version>2.7</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8.1</version>
+				<version>2.10.1</version>
 				<executions>
 					<execution>
 						<id>javadoc-jar</id>
@@ -221,14 +222,13 @@
 		<dependencies>
 			<dependency>
 				<groupId>org.red5</groupId>
-				<artifactId>red5-server</artifactId>
-				<version>${red5-server.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.red5</groupId>
-						<artifactId>red5-client</artifactId>
-					</exclusion>
-				</exclusions>
+				<artifactId>red5-server-common</artifactId>
+				<version>${red5-common.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.red5</groupId>
+				<artifactId>red5-io</artifactId>
+				<version>${red5-io.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -252,13 +252,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.red5</groupId>
-			<artifactId>red5-server</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.red5</groupId>
-					<artifactId>red5-client</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>red5-server-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.red5</groupId>
+			<artifactId>red5-io</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
