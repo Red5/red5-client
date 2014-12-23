@@ -66,6 +66,12 @@
         <bc.version>1.51</bc.version>
         <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
     </properties>
+    <repositories>
+        <repository>
+            <id>osgeo</id>
+            <url>http://download.osgeo.org/webdav/geotools</url>
+        </repository>
+    </repositories>
     <build>
         <defaultGoal>install</defaultGoal>
         <resources>
