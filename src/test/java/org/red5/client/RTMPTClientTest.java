@@ -3,7 +3,7 @@ package org.red5.client;
 import java.util.Map;
 
 import org.red5.client.net.rtmp.ClientExceptionHandler;
-import org.red5.client.net.rtmp.RTMPClient;
+import org.red5.client.net.rtmpt.RTMPTClient;
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
@@ -16,12 +16,11 @@ import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.status.StatusCodes;
 
-public class ClientTest extends RTMPClient {
+public class RTMPTClientTest extends RTMPTClient {
 
 	private String server = "localhost";
 
-	private int port = 1935;
-	//private int port = 5080;
+	private int port = 5080;
 
 	private String application = "oflaDemo";
 	//private String application = "live";
@@ -39,15 +38,15 @@ public class ClientTest extends RTMPClient {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		final ClientTest player = new ClientTest();
+		final RTMPTClientTest player = new RTMPTClientTest();
 		// decide whether or not the source is live or vod
 		//player.setLive(true);
 		// connect
 		player.connect();
 
-		synchronized (ClientTest.class) {
+		synchronized (RTMPTClientTest.class) {
 			if (!finished) {
-				ClientTest.class.wait();
+				RTMPTClientTest.class.wait();
 			}
 		}
 
@@ -80,9 +79,9 @@ public class ClientTest extends RTMPClient {
 			if ("NetConnection.Connect.Rejected".equals(code)) {
 				System.out.printf("Rejected: %s\n", map.get("description"));
 				disconnect();
-				synchronized (ClientTest.class) {
+				synchronized (RTMPTClientTest.class) {
 					finished = true;
-					ClientTest.class.notifyAll();
+					RTMPTClientTest.class.notifyAll();
 				}
 			} else if ("NetConnection.Connect.Success".equals(code)) {
 				createStream(createStreamCallback);
@@ -141,9 +140,9 @@ public class ClientTest extends RTMPClient {
 			Map<String, String> map = (Map<String, String>) obj;
 			String code = map.get("code");
 			if (StatusCodes.NS_PLAY_STOP.equals(code)) {
-				synchronized (ClientTest.class) {
+				synchronized (RTMPTClientTest.class) {
 					finished = true;
-					ClientTest.class.notifyAll();
+					RTMPTClientTest.class.notifyAll();
 				}
 				disconnect();
 				System.out.println("Disconnected");
