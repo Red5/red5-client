@@ -75,11 +75,6 @@
             <id>sonatype-releases</id>
             <name>Sonatype Releases</name>
             <url>http://oss.sonatype.org/content/repositories/releases</url>
-        </repository>    
-        <repository>
-            <id>osgeo</id>
-            <name>OSGeo repo - mainly for groboutils-core resolution</name>
-            <url>http://download.osgeo.org/webdav/geotools</url>
         </repository>
     </repositories>
     <build>
@@ -238,12 +233,6 @@
                 <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>net.sourceforge.groboutils</groupId>
-                <artifactId>groboutils-core</artifactId>
-                <version>5</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -385,10 +374,6 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.groboutils</groupId>
-            <artifactId>groboutils-core</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

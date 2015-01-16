@@ -35,4 +35,5 @@ public class RTMPTClientConnection extends BaseRTMPTConnection {
 	public IoBuffer getPendingMessages(int targetSize) {
 		return foldPendingMessages(targetSize);
 	}
+	
 }

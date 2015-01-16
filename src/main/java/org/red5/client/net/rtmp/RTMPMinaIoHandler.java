@@ -337,8 +337,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	 */
 	public class RTMPClientProtocolDecoder extends RTMPProtocolDecoder {
 
-		private static final int HANDSHAKE_SERVER_SIZE = (HANDSHAKE_SIZE * 2);
-		
+		private static final int HANDSHAKE_SERVER_SIZE = (HANDSHAKE_SIZE * 2);		
 		
 		public IoBuffer decodeHandshakeS1(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {
 			log.debug("decodeServerHandshake - buffer: {}", in);

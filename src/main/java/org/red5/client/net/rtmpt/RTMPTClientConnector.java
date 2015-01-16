@@ -33,12 +33,11 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.session.DummySession;
-import org.apache.mina.core.session.IoSession;
+import org.red5.client.net.rtmp.OutboundHandshake;
 import org.red5.client.net.rtmp.RTMPConnManager;
 import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.util.HttpConnectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +57,7 @@ class RTMPTClientConnector extends Thread {
 	private static final ByteArrayEntity ZERO_REQUEST_ENTITY = new ByteArrayEntity(new byte[] { 0 });
 
 	/**
-	 * Size to split messages queue by, borrowed from
-	 * RTMPTServlet.RESPONSE_TARGET_SIZE
+	 * Size to split messages queue by, borrowed from RTMPTServlet.RESPONSE_TARGET_SIZE
 	 */
 	private static final int SEND_TARGET_SIZE = 32768;
 
@@ -109,7 +107,14 @@ class RTMPTClientConnector extends Thread {
 				checkResponseCode(response);
 				// handle data
 				byte[] received = EntityUtils.toByteArray(response.getEntity());
+				// wrap the bytes
 				IoBuffer data = IoBuffer.wrap(received);
+				log.debug("State: {}", RTMP.states[conn.getStateCode()]);
+				// ensure handshake is done
+				if (conn.hasAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
+					client.messageReceived(data);
+					continue;
+				}				
 				if (data.limit() > 0) {
 					data.skip(1); // XXX: polling interval lies in this byte
 				}
@@ -126,13 +131,11 @@ class RTMPTClientConnector extends Thread {
 					}
 					continue;
 				}
-				IoSession session = new DummySession();
-				session.setAttribute(RTMPConnection.RTMP_SESSION_ID, conn.getSessionId());
 				for (Object message : messages) {
 					try {
 						client.messageReceived(message);
 					} catch (Exception e) {
-						log.error("Could not process message.", e);
+						log.error("Could not process message", e);
 					}
 				}
 			}
@@ -177,11 +180,14 @@ class RTMPTClientConnector extends Thread {
 			conn.setHandler(client);
 			conn.setDecoder(client.getDecoder());
 			conn.setEncoder(client.getEncoder());
+			// create an outbound handshake
+			OutboundHandshake outgoingHandshake = new OutboundHandshake();
+			// set the handshake type
+			outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_NON_ENCRYPTED);
+			// add the handshake
+			conn.setAttribute(RTMPConnection.RTMP_HANDSHAKE, outgoingHandshake);
 			log.debug("Handshake 1st phase");
-			IoBuffer handshake = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
-			handshake.put((byte) 0x03);
-			handshake.fill((byte) 0x01, Constants.HANDSHAKE_SIZE);
-			handshake.flip();
+			IoBuffer handshake = outgoingHandshake.doHandshake(null);
 			conn.writeRaw(handshake);
 		}
 		return conn;

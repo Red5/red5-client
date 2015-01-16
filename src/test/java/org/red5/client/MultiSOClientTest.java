@@ -1,23 +1,27 @@
 package org.red5.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
-import net.sourceforge.groboutils.junit.v1.TestRunnable;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.red5.server.adapter.ApplicationAdapter;
 //import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectBase;
 import org.red5.server.api.so.ISharedObjectListener;
+import org.red5.server.scope.WebScope;
 //import org.red5.server.scope.WebScope;
 import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
@@ -28,13 +32,12 @@ public class MultiSOClientTest {
 
 	protected static Logger log = LoggerFactory.getLogger(MultiSOClientTest.class);
 
-	/** commented due to dependencies problem
 	private static WebScope appScope;
-	 */	
-	private static TestRunnable[] trs;
+
+	private static List<SOClientWorker> tasks;
 
 	private ApplicationContext applicationContext;
-	
+
 	@SuppressWarnings("unused")
 	private String host = "localhost";
 
@@ -46,8 +49,8 @@ public class MultiSOClientTest {
 		System.setProperty("red5.root", "bin");
 		System.setProperty("red5.config_root", "bin/conf");
 		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
-	}	
-	
+	}
+
 	@Before
 	public void setUp() throws Exception {
 	}
@@ -61,10 +64,8 @@ public class MultiSOClientTest {
 		fail("Not yet implemented"); // TODO
 	}
 
-
 	@Test
 	public void testDeepDirty() throws Throwable {
-		/** commented due to dependencies problem
 		log.debug("testDeepDirty");
 		ApplicationAdapter app = (ApplicationAdapter) applicationContext.getBean("web.handler");
 		// get our room
@@ -72,51 +73,47 @@ public class MultiSOClientTest {
 		// create the SO
 		app.createSharedObject(room, "dirtySO", true);
 		// test runnables represent clients
-		trs = new TestRunnable[2];
+		List<SOClientWorker> tasks = new ArrayList<SOClientWorker>(2);
 		for (int t = 0; t < 2; t++) {
-			trs[t] = new SOClientWorker(t, app, room);
+			tasks.add(new SOClientWorker(t, app, room));
 		}
-		MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(trs);
-
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
 		// fires off threads
 		long start = System.nanoTime();
-		mttr.runTestRunnables();
+		// invokeAll() blocks until all tasks have run...
+		List<Future<Object>> futures = executorService.invokeAll(tasks);
 		System.out.println("Runtime: " + (System.nanoTime() - start) + "ns");
-
 		// go to sleep
 		try {
 			Thread.sleep(3000);
 		} catch (Exception e) {
 		}
-
-		for (TestRunnable r : trs) {
-			SOClientWorker cl = (SOClientWorker) r;
+		for (SOClientWorker r : tasks) {
+			SOClientWorker cl = r;
 			log.debug("Worker: {} shared object: {}", cl.getId(), cl.getSO().getAttributes());
 		}
-
 		log.debug("testDeepDirty-end");
-		*/
 	}
-	
-	/** commented due to dependencies problem
+
 	// Used to ensure all the test-runnables are in "runTest" block.
 	private static boolean allThreadsRunning() {
-		for (TestRunnable r : trs) {
-			if (!((SOClientWorker) r).isRunning()) {
+		for (SOClientWorker r : tasks) {
+			SOClientWorker cl = r;
+			if (!r.isRunning()) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private class SOClientWorker extends TestRunnable {
+	private class SOClientWorker implements Callable<Object> {
 
 		private int id;
 
 		private ISharedObject so;
 
 		private volatile boolean running = false;
-		
+
 		public SOClientWorker(int id, ApplicationAdapter app, IScope room) {
 			this.id = id;
 			this.so = app.getSharedObject(room, "dirtySO", true);
@@ -124,7 +121,7 @@ public class MultiSOClientTest {
 			so.addSharedObjectListener(listener);
 		}
 
-		public void runTest() throws Throwable {
+		public Object call() throws Exception {
 			log.debug("runTest#{}", id);
 			running = true;
 			do {
@@ -140,6 +137,7 @@ public class MultiSOClientTest {
 			Thread.sleep(500);
 			log.debug("runTest-end#{}", id);
 			running = false;
+			return null;
 		}
 
 		public int getId() {
@@ -149,12 +147,12 @@ public class MultiSOClientTest {
 		public ISharedObject getSO() {
 			return so;
 		}
- 
+
 		public boolean isRunning() {
 			return running;
 		}
 	}
-*/
+
 	private class MySOListener implements ISharedObjectListener {
 
 		private int id;
@@ -205,7 +203,7 @@ public class MultiSOClientTest {
 	}
 
 	private class Complex {
-		
+
 		private long x = System.currentTimeMillis();
 
 		private String s = "Complex object";
@@ -242,6 +240,6 @@ public class MultiSOClientTest {
 			return "Complex [x=" + x + ", s=" + s + ", map=" + map + "]";
 		}
 
-	}	
-	
+	}
+
 }

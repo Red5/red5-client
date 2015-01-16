@@ -18,18 +18,17 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 
 public class RTMPTClientTest extends RTMPTClient {
 
+	// server host name
 	private String server = "localhost";
 
+	// server port
 	private int port = 5080;
 
+	// application or context
 	private String application = "oflaDemo";
-	//private String application = "live";
-
-	//private String filename = "prometheus.flv";
+	
+	// file or stream identifier
 	private String filename = "Avengers2.mp4";
-	//private String filename = "NAPNAP.flv";
-	//private String filename = "cameraFeed";
-	//private String filename = "stream";
 
 	// live stream (true) or vod stream (false)
 	private boolean live;
@@ -83,8 +82,17 @@ public class RTMPTClientTest extends RTMPTClient {
 					finished = true;
 					RTMPTClientTest.class.notifyAll();
 				}
+			} else if ("NetConnection.Connect.Failed".equals(code)) {
+				System.out.printf("Failed: %s\n", map.get("description"));
+				disconnect();
+				synchronized (RTMPTClientTest.class) {
+					finished = true;
+					RTMPTClientTest.class.notifyAll();
+				}
 			} else if ("NetConnection.Connect.Success".equals(code)) {
 				createStream(createStreamCallback);
+			} else {
+				System.out.printf("Unhandled response code: %s\n", code);
 			}			
 		}
 	};

@@ -1,8 +1,14 @@
 package org.red5.server.net.rtmp;
 
 import static org.junit.Assert.assertNotNull;
-import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
-import net.sourceforge.groboutils.junit.v1.TestRunnable;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.After;
 import org.junit.Before;
@@ -16,7 +22,7 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
-//import org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory;
+import org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.service.Call;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,7 +40,8 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		System.setProperty("red5.deployment.type", "junit");
 		System.setProperty("red5.root", "target/test-classes");
 		System.setProperty("red5.config_root", "src/main/server/conf");
-		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
+		System.setProperty("logback.ContextSelector",
+				"org.red5.logging.LoggingContextSelector");
 	}
 
 	@Before
@@ -48,8 +55,8 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void testLoad() throws Exception {
-		/** commented due to dependencies problem
-		RTMPMinaTransport mina = (RTMPMinaTransport) applicationContext.getBean("rtmpTransport");
+		RTMPMinaTransport mina = (RTMPMinaTransport) applicationContext
+				.getBean("rtmpTransport");
 		// check the io handler
 		RTMPMinaIoHandler ioHandler = (RTMPMinaIoHandler) mina.ioHandler;
 		if (ioHandler.codecFactory == null) {
@@ -74,25 +81,26 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		// start
 		mina.start();
 		// create some clients
-		TestRunnable[] trs = new TestRunnable[threads];
+		List<CreatorWorker> tasks = new ArrayList<CreatorWorker>(threads);
 		for (int t = 0; t < threads; t++) {
-			trs[t] = new CreatorWorker();
+			tasks.add(new CreatorWorker());
 		}
 		Runtime rt = Runtime.getRuntime();
 		long startFreeMem = rt.freeMemory();
 		System.out.printf("Free mem: %s\n", startFreeMem);
-		MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(trs);
-		try {
-			mttr.runTestRunnables();
-		} catch (Throwable e1) {
-			e1.printStackTrace();
-		}
+		ExecutorService executorService = Executors.newFixedThreadPool(threads);
+		// invokeAll() blocks until all tasks have run...
+		List<Future<Object>> futures = executorService.invokeAll(tasks);
+		assertTrue(futures.size() == threads);
+
 		int noAV = 0;
-		for (TestRunnable r : trs) {
-			TestClient cli = ((CreatorWorker) r).getClient();
+		for (CreatorWorker r : tasks) {
+			TestClient cli = r.getClient();
 			assertNotNull(cli);
 			if (cli != null) {
-				System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().getId(), cli.getAudioCounter(), cli.getVideoCounter());
+				System.out.printf("Client %d - audio: %d video: %d\n", cli
+						.getConnection().getId(), cli.getAudioCounter(), cli
+						.getVideoCounter());
 				if (cli.getAudioCounter() == 0 || cli.getVideoCounter() == 0) {
 					noAV++;
 				}
@@ -103,23 +111,24 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 			}
 		}
 		System.out.printf("Free mem: %s\n", rt.freeMemory());
-		System.out.printf("Memory change: %d\n", (rt.freeMemory() - startFreeMem));
+		System.out.printf("Memory change: %d\n",
+				(rt.freeMemory() - startFreeMem));
 		System.out.printf("Client fail count: %d\n", noAV);
-		// TODO change this after we fix the client handshake issues in the RTMPClient
-		//assertTrue(noAV == 0);
+		// TODO change this after we fix the client handshake issues in the
+		// RTMPClient
+		// assertTrue(noAV == 0);
 		// stop
 		mina.stop();
-		*/
 	}
 
-	private class CreatorWorker extends TestRunnable {
+	private class CreatorWorker implements Callable<Object> {
 		TestClient client;
 
-		public void runTest() throws Throwable {
+		public Object call() throws Exception {
 			client = new TestClient();
 			client.connect();
 			Thread.sleep(clientLifetime);
-
+			return null;
 		}
 
 		public TestClient getClient() {
@@ -153,7 +162,8 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 		private IEventDispatcher streamEventDispatcher = new IEventDispatcher() {
 			public void dispatchEvent(IEvent event) {
-				//System.out.println("ClientStream.dispachEvent()" + event.toString());
+				// System.out.println("ClientStream.dispachEvent()" +
+				// event.toString());
 				String evt = event.toString();
 				if (evt.indexOf("Audio") >= 0) {
 					audioCounter++;
@@ -165,24 +175,28 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 		private IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
 			public void resultReceived(IPendingServiceCall call) {
-				//System.out.println("connectCallback");		
+				// System.out.println("connectCallback");
 				// if we aren't connection, skip any further processing
 				if (Call.STATUS_NOT_CONNECTED != call.getStatus()) {
 					ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
 					String code = (String) map.get("code");
 					if ("NetConnection.Connect.Rejected".equals(code)) {
-						System.out.printf("Rejected: %s\n", map.get("description"));
+						System.out.printf("Rejected: %s\n",
+								map.get("description"));
 						disconnect();
 					} else if ("NetConnection.Connect.Failed".equals(code)) {
-						System.out.printf("Failed: %s\n", map.get("description"));
+						System.out.printf("Failed: %s\n",
+								map.get("description"));
 						disconnect();
 					} else if ("NetConnection.Connect.Success".equals(code)) {
 						createStream(createStreamCallback);
 					} else {
-						System.out.printf("Unhandled response code: %s\n", code);
+						System.out
+								.printf("Unhandled response code: %s\n", code);
 					}
 				} else {
-					System.err.println("Pending call skipped due to being no longer connected");
+					System.err
+							.println("Pending call skipped due to being no longer connected");
 				}
 			}
 		};
@@ -196,7 +210,8 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 					// play 2 min test clip
 					play(streamId, "h264_mp3", 0, -1);
 				} else {
-					System.err.println("Pending call skipped due to being no longer connected");
+					System.err
+							.println("Pending call skipped due to being no longer connected");
 				}
 			}
 		};

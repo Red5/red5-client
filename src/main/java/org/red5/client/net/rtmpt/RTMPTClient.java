@@ -22,9 +22,11 @@ import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.client.net.rtmp.BaseRTMPClientHandler;
+import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.RTMPHandshake;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
-import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmpt.codec.RTMPTCodecFactory;
 import org.slf4j.Logger;
@@ -43,7 +45,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	private RTMPTClientConnector connector;
 
 	private RTMPTCodecFactory codecFactory;
-
+	
 	public RTMPTClient() {
 		protocol = "rtmpt";
 		codecFactory = new RTMPTCodecFactory();
@@ -77,15 +79,21 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 				log.warn("Exception on packet receive", e);
 			}
 		} else {
+			// raw buffer handling
 			IoBuffer in = (IoBuffer) message;
-			log.debug("Handshake 3d phase - size: {}", in.remaining());
-			IoBuffer out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
-			out.setAutoExpand(true);
-			log.debug("Skip first byte: {}", in.get());
-			out.put(in);
-			out.flip();
-			conn.writeRaw(out);
-			connectionOpened(conn);	
+			// get the handshake
+			RTMPHandshake handshake = (RTMPHandshake) conn.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
+			if (handshake != null) {
+				log.debug("Handshake - client phase 2 - size: {}", in.remaining());
+				in.position(2);
+				IoBuffer out = handshake.doHandshake(in);
+				if (out != null) {
+					conn.writeRaw(out);
+					conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+					conn.setStateCode(RTMP.STATE_CONNECTED);
+					connectionOpened(conn);
+				}
+			}
 		}
 	}		
 

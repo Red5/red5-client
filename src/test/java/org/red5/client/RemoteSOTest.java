@@ -1,7 +1,13 @@
 package org.red5.client;
 
-import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
-import net.sourceforge.groboutils.junit.v1.TestRunnable;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
@@ -19,7 +25,8 @@ public class RemoteSOTest {
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
-		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
+		System.setProperty("logback.ContextSelector",
+				"org.red5.logging.LoggingContextSelector");
 		log = LoggerFactory.getLogger(RemoteSOTest.class);
 	}
 
@@ -34,22 +41,24 @@ public class RemoteSOTest {
 	@Test
 	public void testRemoteSO() throws Throwable {
 		// test runnables represent clients
-		TestRunnable[] trs = new TestRunnable[threads];
+		List<SOClientWorker> tasks = new ArrayList<SOClientWorker>(threads);
 		for (int t = 0; t < threads; t++) {
-			trs[t] = new SOClientWorker(t);
+			tasks.add(new SOClientWorker(t));
 		}
-		MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(trs);
+		ExecutorService executorService = Executors.newFixedThreadPool(threads);
 		// fires off threads
 		long start = System.nanoTime();
-		mttr.runTestRunnables();
+		// invokeAll() blocks until all tasks have run...
+		List<Future<Object>> futures = executorService.invokeAll(tasks);
+		assertTrue(futures.size() == threads);
 		System.out.println("Runtime: " + (System.nanoTime() - start) + "ns");
-		for (TestRunnable r : trs) {
-			SOClientWorker cl = (SOClientWorker) r;
+		for (SOClientWorker r : tasks) {
+			SOClientWorker cl = r;
 			log.debug("Worker: {}", cl.getId());
 		}
 	}
 
-	private class SOClientWorker extends TestRunnable {
+	private class SOClientWorker implements Callable<Object> {
 
 		int id;
 
@@ -63,7 +72,7 @@ public class RemoteSOTest {
 			this.id = id;
 		}
 
-		public void runTest() throws Throwable {
+		public Object call() throws Exception {
 			log.debug("runTest#{}", id);
 			running = true;
 			client = new SharedObjectClient("localhost", 1935, "myapp", "myroom");
@@ -82,6 +91,7 @@ public class RemoteSOTest {
 			Thread.sleep(100L);
 			client.disconnect();
 			running = false;
+			return null;
 		}
 
 		public int getId() {
