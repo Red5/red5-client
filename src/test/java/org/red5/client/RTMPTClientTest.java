@@ -69,6 +69,30 @@ public class RTMPTClientTest extends RTMPTClient {
 		}
 	};
 
+	private IPendingServiceCallback methodCallCallback = new IPendingServiceCallback() {
+		public void resultReceived(IPendingServiceCall call) {
+			System.out.println("methodCallCallback");
+			Map<?, ?> map = (Map<?, ?>) call.getResult();
+			System.out.printf("Response %s\n", map);
+			int i = 0;
+		}
+	};
+	
+	public void getFlvList() {
+		invoke("demoService.getListOfAvailableFLVs", new Object[] {}, methodCallCallback);
+	}
+	
+	public void test() {
+		new Thread() {
+			@Override
+			public void run() {
+				for (int i = 0; i < 100; ++i) {
+					getFlvList();
+				}
+			}
+		}.start();
+	}
+	
 	private IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
 		public void resultReceived(IPendingServiceCall call) {
 			System.out.println("connectCallback");
@@ -90,6 +114,7 @@ public class RTMPTClientTest extends RTMPTClient {
 					RTMPTClientTest.class.notifyAll();
 				}
 			} else if ("NetConnection.Connect.Success".equals(code)) {
+				test();
 				createStream(createStreamCallback);
 			} else {
 				System.out.printf("Unhandled response code: %s\n", code);
