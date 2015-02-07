@@ -1,5 +1,5 @@
 /*
- * RED5 Open Source Flash Server - http://code.google.com/p/red5/
+ * RED5 Open Source Flash Server - https://github.com/Red5/
  * 
  * Copyright 2006-2013 by respective authors (see below). All rights reserved.
  * 
