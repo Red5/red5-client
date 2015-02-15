@@ -6,7 +6,7 @@
     <name>Red5 :: Client</name>
     <description>The Red5 client</description>
     <groupId>org.red5</groupId>
-    <version>1.0.5-RELEASE</version>
+    <version>1.0.6-SNAPSHOT</version>
     <url>https://github.com/Red5/red5-client</url>
     <inceptionYear>2005</inceptionYear>
     <organization>
@@ -305,7 +305,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.3.5</version>
+            <version>4.4</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>

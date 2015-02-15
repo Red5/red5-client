@@ -74,7 +74,6 @@ public class RTMPTClientTest extends RTMPTClient {
 			System.out.println("methodCallCallback");
 			Map<?, ?> map = (Map<?, ?>) call.getResult();
 			System.out.printf("Response %s\n", map);
-			int i = 0;
 		}
 	};
 	
