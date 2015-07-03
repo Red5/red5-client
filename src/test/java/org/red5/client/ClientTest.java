@@ -76,7 +76,6 @@ public class ClientTest extends RTMPClient {
 			System.out.println("methodCallCallback");
 			Map<?, ?> map = (Map<?, ?>) call.getResult();
 			System.out.printf("Response %s\n", map);
-			int i = 0;
 		}
 	};
 	
