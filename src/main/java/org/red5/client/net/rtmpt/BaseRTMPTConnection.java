@@ -237,11 +237,16 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		}
 		IoBuffer data;
 		try {
+			Red5.setConnectionLocal(this);
 			data = encoder.encode(packet);
 		} catch (Exception e) {
 			log.error("Could not encode message {}", packet, e);
 			return;
 		}
+		finally {
+			Red5.setConnectionLocal(null);
+		}
+
 		if (data != null) {
 			// Mark packet as being written
 			writingMessage(packet);
