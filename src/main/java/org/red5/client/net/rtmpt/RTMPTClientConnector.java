@@ -100,6 +100,7 @@ class RTMPTClientConnector extends Thread {
 				} else {
 					post = makePost("idle");
 					post.setEntity(ZERO_REQUEST_ENTITY);
+					post.addHeader("Content-Type", CONTENT_TYPE);
 				}
 				// execute
 				HttpResponse response = httpClient.execute(targetHost, post);
@@ -163,6 +164,7 @@ class RTMPTClientConnector extends Thread {
 		RTMPTClientConnection conn = null;
 		HttpPost openPost = getPost("/open/1");
 		setCommonHeaders(openPost);
+		openPost.addHeader("Content-Type", CONTENT_TYPE);
 		openPost.setEntity(ZERO_REQUEST_ENTITY);
 		// execute
 		HttpResponse response = httpClient.execute(targetHost, openPost);
@@ -196,6 +198,7 @@ class RTMPTClientConnector extends Thread {
 	private void finalizeConnection() throws IOException {
 		log.debug("Sending close post");
 		HttpPost closePost = getPost(makeUrl("close"));
+		closePost.addHeader("Content-Type", CONTENT_TYPE);
 		closePost.setEntity(ZERO_REQUEST_ENTITY);
 		HttpResponse response = httpClient.execute(targetHost, closePost);
 		EntityUtils.consume(response.getEntity());
