@@ -344,22 +344,20 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 				// set the client buffer
 				IClientStream stream = null;
 				// get the stream id
-				int streamId = ping.getValue2();
+				Number streamId = ping.getValue2();
 				// get requested buffer size in milliseconds
 				int buffer = ping.getValue3();
 				log.debug("Client sent a buffer size: {} ms for stream id: {}", buffer, streamId);
-				if (streamId != 0) {
-					// the client wants to set the buffer time
-					stream = conn.getStreamById(streamId);
-					if (stream != null) {
-						stream.setClientBufferDuration(buffer);
-						log.info("Setting client buffer on stream: {}", buffer);
-					}
+				// the client wants to set the buffer time
+				stream = conn.getStreamById(streamId);
+				if (stream != null) {
+					stream.setClientBufferDuration(buffer);
+					log.info("Setting client buffer on stream: {}", buffer);
 				}
 				// catch-all to make sure buffer size is set
 				if (stream == null) {
 					// remember buffer time until stream is created
-					conn.rememberStreamBufferDuration(streamId, buffer);
+					conn.rememberStreamBufferDuration(streamId.intValue(), buffer);
 					log.info("Remembering client buffer on stream: {}", buffer);
 				}
 				break;
@@ -729,7 +727,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 		boolean onStatus = "onStatus".equals(methodName);
 		log.debug("onStatus {}", onStatus);
 		if (onStatus) {
-			Integer streamId = source.getStreamId();
+			Number streamId = source.getStreamId();
 			if (log.isDebugEnabled()) {
 				log.debug("Stream id from header: {}", streamId);
 				// XXX create better to serialize ObjectMap to Status object

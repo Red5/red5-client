@@ -26,11 +26,7 @@ public class ClientTest extends RTMPClient {
 	private String application = "oflaDemo";
 	//private String application = "live";
 
-	//private String filename = "prometheus.flv";
 	private String filename = "Avengers2.mp4";
-	//private String filename = "NAPNAP.flv";
-	//private String filename = "cameraFeed";
-	//private String filename = "stream";
 
 	// live stream (true) or vod stream (false)
 	private boolean live;
