@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 /**
  * RTMP client implementation supporting "rtmp" and "rtmpe" protocols.
  * 
- * @author The Red5 Project 
+ * @author The Red5 Project
  * @author Christian Eckerle (ce@publishing-etc.de)
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
@@ -42,88 +42,88 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPClient extends BaseRTMPClientHandler {
 
-	private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
+    private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
 
-	protected static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
+    protected static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
 
-	// I/O handler
-	private final RTMPMinaIoHandler ioHandler;
+    // I/O handler
+    private final RTMPMinaIoHandler ioHandler;
 
-	// Socket connector, disposed on disconnect
-	protected SocketConnector socketConnector;
+    // Socket connector, disposed on disconnect
+    protected SocketConnector socketConnector;
 
-	// 
-	protected ConnectFuture future;
-	
-	/** Constructs a new RTMPClient. */
-	public RTMPClient() {
-		ioHandler = new RTMPMinaIoHandler();
-		ioHandler.setHandler(this);
-	}
+    // 
+    protected ConnectFuture future;
 
-	/** {@inheritDoc} */
-	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
-		Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
-		if (!params.containsKey("tcUrl")) {
-			params.put("tcUrl", String.format("%s://%s:%s/%s", protocol, server, port, application));
-		}
-		return params;
-	}
+    /** Constructs a new RTMPClient. */
+    public RTMPClient() {
+        ioHandler = new RTMPMinaIoHandler();
+        ioHandler.setHandler(this);
+    }
 
-	/** {@inheritDoc} */
-	@Override
-	protected void startConnector(String server, int port) {
-		socketConnector = new NioSocketConnector();
-		socketConnector.setHandler(ioHandler);
-		future = socketConnector.connect(new InetSocketAddress(server, port));
-		future.addListener(new IoFutureListener<ConnectFuture>() {
-			public void operationComplete(ConnectFuture future) {
-				try {
-					// will throw RuntimeException after connection error
-					future.getSession();
-				} catch (Throwable e) {
-					socketConnector.dispose(false);
-					// if there isn't an ClientExceptionHandler set, a RuntimeException may be thrown in handleException
-					handleException(e);
-				}
-			}
-		});
-		// Now wait for the connect to be completed
-		future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
-	}
+    /** {@inheritDoc} */
+    public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
+        Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
+        if (!params.containsKey("tcUrl")) {
+            params.put("tcUrl", String.format("%s://%s:%s/%s", protocol, server, port, application));
+        }
+        return params;
+    }
 
-	/** {@inheritDoc} */	
-	@Override
-	public void disconnect() {
-		if (future != null) {
-			try {
-				// close requesting that the pending messages are sent before the session is closed
-				future.getSession().close(false);
-				// now wait for the close to be completed
-				future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
-			} catch (Exception e) {
-				log.warn("Exception during disconnect", e);
-			} finally {
-				// We can now dispose the connector
-				socketConnector.dispose(false);
-			}
-		}
-		super.disconnect();
-	}
+    /** {@inheritDoc} */
+    @Override
+    protected void startConnector(String server, int port) {
+        socketConnector = new NioSocketConnector();
+        socketConnector.setHandler(ioHandler);
+        future = socketConnector.connect(new InetSocketAddress(server, port));
+        future.addListener(new IoFutureListener<ConnectFuture>() {
+            public void operationComplete(ConnectFuture future) {
+                try {
+                    // will throw RuntimeException after connection error
+                    future.getSession();
+                } catch (Throwable e) {
+                    socketConnector.dispose(false);
+                    // if there isn't an ClientExceptionHandler set, a RuntimeException may be thrown in handleException
+                    handleException(e);
+                }
+            }
+        });
+        // Now wait for the connect to be completed
+        future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
+    }
 
-	/**
-	 * Sets the RTMP protocol, the default is "rtmp". If "rtmps" or "rtmpt" are required, the appropriate
-	 * client type should be selected.
-	 * 
-	 * @param protocol the protocol to set
-	 * @throws Exception 
-	 */
-	@Override
-	public void setProtocol(String protocol) throws Exception {
-		this.protocol = protocol;
-		if ("rtmps".equals(protocol) || "rtmpt".equals(protocol) || "rtmpte".equals(protocol) || "rtmfp".equals(protocol)) {
-			throw new Exception("Unsupported protocol specified, please use the correct client for the intended protocol.");
-		}
-	}
+    /** {@inheritDoc} */
+    @Override
+    public void disconnect() {
+        if (future != null) {
+            try {
+                // close requesting that the pending messages are sent before the session is closed
+                future.getSession().close(false);
+                // now wait for the close to be completed
+                future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
+            } catch (Exception e) {
+                log.warn("Exception during disconnect", e);
+            } finally {
+                // We can now dispose the connector
+                socketConnector.dispose(false);
+            }
+        }
+        super.disconnect();
+    }
+
+    /**
+     * Sets the RTMP protocol, the default is "rtmp". If "rtmps" or "rtmpt" are required, the appropriate client type should be selected.
+     * 
+     * @param protocol
+     *            the protocol to set
+     * @throws Exception
+     */
+    @Override
+    public void setProtocol(String protocol) throws Exception {
+        this.protocol = protocol;
+        if ("rtmps".equals(protocol) || "rtmpt".equals(protocol) || "rtmpte".equals(protocol) || "rtmfp".equals(protocol)) {
+            throw new Exception("Unsupported protocol specified, please use the correct client for the intended protocol.");
+        }
+    }
 
 }
