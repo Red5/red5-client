@@ -38,7 +38,7 @@ public class ClientTest extends RTMPClient {
         final ClientTest player = new ClientTest();
         player.setConnectionClosedHandler(new Runnable() {
             public void run() {
-                System.exit(9999);
+                System.out.println("Connection closed");
             }
         });
         // decide whether or not the source is live or vod

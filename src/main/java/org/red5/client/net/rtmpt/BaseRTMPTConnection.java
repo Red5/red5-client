@@ -39,264 +39,266 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BaseRTMPTConnection extends RTMPConnection {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseRTMPTConnection.class);
+    private static final Logger log = LoggerFactory.getLogger(BaseRTMPTConnection.class);
 
-	/**
-	 * Protocol decoder
-	 */
-	private RTMPTProtocolDecoder decoder;
+    /**
+     * Protocol decoder
+     */
+    private RTMPTProtocolDecoder decoder;
 
-	/**
-	 * Protocol encoder
-	 */
-	private RTMPTProtocolEncoder encoder;
+    /**
+     * Protocol encoder
+     */
+    private RTMPTProtocolEncoder encoder;
 
-	private static class PendingData {
-		private IoBuffer buffer;
+    private static class PendingData {
+        private IoBuffer buffer;
 
-		private Packet packet;
+        private Packet packet;
 
-		private PendingData(IoBuffer buffer, Packet packet) {
-			this.buffer = buffer;
-			this.packet = packet;
-		}
+        private PendingData(IoBuffer buffer, Packet packet) {
+            this.buffer = buffer;
+            this.packet = packet;
+        }
 
-		private PendingData(IoBuffer buffer) {
-			this.buffer = buffer;
-		}
+        private PendingData(IoBuffer buffer) {
+            this.buffer = buffer;
+        }
 
-		public IoBuffer getBuffer() {
-			return buffer;
-		}
+        public IoBuffer getBuffer() {
+            return buffer;
+        }
 
-		public Packet getPacket() {
-			return packet;
-		}
+        public Packet getPacket() {
+            return packet;
+        }
 
-		public String toString() {
-			return getClass().getName() + "(buffer=" + buffer + "; packet=" + packet + ")";
-		}
-	}
+        public String toString() {
+            return getClass().getName() + "(buffer=" + buffer + "; packet=" + packet + ")";
+        }
+    }
 
-	/**
-	 * List of pending messages
-	 */
-	private ConcurrentLinkedQueue<PendingData> pendingMessages = new ConcurrentLinkedQueue<PendingData>();
+    /**
+     * List of pending messages
+     */
+    private ConcurrentLinkedQueue<PendingData> pendingMessages = new ConcurrentLinkedQueue<PendingData>();
 
-	/**
-	 * Closing flag
-	 */
-	private volatile boolean closing;
+    /**
+     * Closing flag
+     */
+    private volatile boolean closing;
 
-	/**
-	 * Number of read bytes
-	 */
-	private AtomicLong readBytes = new AtomicLong(0);
+    /**
+     * Number of read bytes
+     */
+    private AtomicLong readBytes = new AtomicLong(0);
 
-	/**
-	 * Number of written bytes
-	 */
-	private AtomicLong writtenBytes = new AtomicLong(0);
+    /**
+     * Number of written bytes
+     */
+    private AtomicLong writtenBytes = new AtomicLong(0);
 
-	/**
-	 * Byte buffer
-	 */
-	private IoBuffer buffer;
-	
-	/**
-	 * Clients session id, used to override the BaseConnection.sessionId for client implementations.
-	 */
-	protected String clientSessionId;
+    /**
+     * Byte buffer
+     */
+    private IoBuffer buffer;
 
-	/**
-	 * RTMP events handler
-	 */
-	private volatile IRTMPHandler handler;
+    /**
+     * Clients session id, used to override the BaseConnection.sessionId for client implementations.
+     */
+    protected String clientSessionId;
 
-	public BaseRTMPTConnection(String type) {
-		super(type);
-		this.buffer = IoBuffer.allocate(2048);
-		this.buffer.setAutoExpand(true);
-	}
+    /**
+     * RTMP events handler
+     */
+    private volatile IRTMPHandler handler;
 
-	/**
-	 * Return any pending messages up to a given size.
-	 *
-	 * @param targetSize the size the resulting buffer should have
-	 * @return a buffer containing the data to send or null if no messages are
-	 *         pending
-	 */
-	abstract public IoBuffer getPendingMessages(int targetSize);
+    public BaseRTMPTConnection(String type) {
+        super(type);
+        this.buffer = IoBuffer.allocate(2048);
+        this.buffer.setAutoExpand(true);
+    }
 
-	/** {@inheritDoc} */
-	@Override
-	public void close() {
-		log.debug("close - state: {}", state.getState());		
-		// Defer actual closing so we can send back pending messages to the client.
-		closing = true;
-	}
+    /**
+     * Return any pending messages up to a given size.
+     *
+     * @param targetSize
+     *            the size the resulting buffer should have
+     * @return a buffer containing the data to send or null if no messages are pending
+     */
+    abstract public IoBuffer getPendingMessages(int targetSize);
 
-	/**
-	 * Getter for property 'closing'.
-	 *
-	 * @return Value for property 'closing'.
-	 */
-	public boolean isClosing() {
-		return closing;
-	}
+    /** {@inheritDoc} */
+    @Override
+    public void close() {
+        log.debug("close - state: {}", state.getState());
+        // Defer actual closing so we can send back pending messages to the client.
+        closing = true;
+    }
 
-	/**
-	 * Real close
-	 */
-	public void realClose() {
-		if (isClosing()) {
-			if (buffer != null) {
-				buffer.free();
-				buffer = null;
-			}
-			state.setState(RTMP.STATE_DISCONNECTED);
-			pendingMessages.clear();
-			super.close();
-		}
-	}
+    /**
+     * Getter for property 'closing'.
+     *
+     * @return Value for property 'closing'.
+     */
+    public boolean isClosing() {
+        return closing;
+    }
 
-	/**
-	 * Send raw data down the connection.
-	 *
-	 * @param packet the buffer containing the raw data
-	 */
-	@Override
-	public void writeRaw(IoBuffer packet) {
-		pendingMessages.add(new PendingData(packet));
-	}
+    /**
+     * Real close
+     */
+    public void realClose() {
+        if (isClosing()) {
+            if (buffer != null) {
+                buffer.free();
+                buffer = null;
+            }
+            state.setState(RTMP.STATE_DISCONNECTED);
+            pendingMessages.clear();
+            super.close();
+        }
+    }
 
-	/** {@inheritDoc} */
-	@Override
-	public long getReadBytes() {
-		return readBytes.get();
-	}
+    /**
+     * Send raw data down the connection.
+     *
+     * @param packet
+     *            the buffer containing the raw data
+     */
+    @Override
+    public void writeRaw(IoBuffer packet) {
+        pendingMessages.add(new PendingData(packet));
+    }
 
-	/** {@inheritDoc} */
-	@Override
-	public long getWrittenBytes() {
-		return writtenBytes.get();
-	}
+    /** {@inheritDoc} */
+    @Override
+    public long getReadBytes() {
+        return readBytes.get();
+    }
 
-	/** {@inheritDoc} */
-	@Override
-	public long getPendingMessages() {
-		return pendingMessages.size();
-	}
+    /** {@inheritDoc} */
+    @Override
+    public long getWrittenBytes() {
+        return writtenBytes.get();
+    }
 
-	public void setSessionId(String sessionId) {
-		log.debug("Overriding generated session id {} with {}", this.sessionId, sessionId);
-		this.clientSessionId = sessionId;
-		// reset the session id on the decoder state to prevent confusing log messages
-//		RTMPDecodeState state = this.decoderState.get();
-//		if (state != null) {
-//			state.setSessionId(sessionId);
-//		}
-	}
-	
-	@Override
-	public String getSessionId() {
-		if (clientSessionId == null) {
-			return sessionId;
-		}
-		return clientSessionId;
-	}
-	
-	/**
-	 * Decode data sent by the client.
-	 *
-	 * @param data the data to decode
-	 * @return a list of decoded objects
-	 */
-	public List<?> decode(IoBuffer data) {
-		log.debug("decode - state: {}", state);
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't decode any new packets
-			return Collections.EMPTY_LIST;
-		}
-		readBytes.addAndGet(data.limit());
-		buffer.put(data);
-		buffer.flip();
-		return decoder.decodeBuffer(this, buffer);
-	}
+    /** {@inheritDoc} */
+    @Override
+    public long getPendingMessages() {
+        return pendingMessages.size();
+    }
 
-	/**
-	 * Send RTMP packet down the connection.
-	 *
-	 * @param packet the packet to send
-	 */
-	@Override
-	public void write(final Packet packet) {
-		log.debug("write - state: {}", state);		
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't send any new packets
-			return;
-		}
-		IoBuffer data;
-		try {
-			Red5.setConnectionLocal(this);
-			data = encoder.encode(packet);
-		} catch (Exception e) {
-			log.error("Could not encode message {}", packet, e);
-			return;
-		}
-		finally {
-			Red5.setConnectionLocal(null);
-		}
+    public void setSessionId(String sessionId) {
+        log.debug("Overriding generated session id {} with {}", this.sessionId, sessionId);
+        this.clientSessionId = sessionId;
+        // reset the session id on the decoder state to prevent confusing log messages
+        //		RTMPDecodeState state = this.decoderState.get();
+        //		if (state != null) {
+        //			state.setSessionId(sessionId);
+        //		}
+    }
 
-		if (data != null) {
-			// Mark packet as being written
-			writingMessage(packet);
-			//add to pending
-			pendingMessages.add(new PendingData(data, packet));
-		} else {
-			log.info("Response buffer was null after encoding");
-		}
-	}
+    @Override
+    public String getSessionId() {
+        if (clientSessionId == null) {
+            return sessionId;
+        }
+        return clientSessionId;
+    }
 
-	protected IoBuffer foldPendingMessages(int targetSize) {
-		if (pendingMessages.isEmpty()) {
-			return null;
-		}
-		IoBuffer result = IoBuffer.allocate(2048);
-		result.setAutoExpand(true);
-		// We'll have to create a copy here to avoid endless recursion
-		List<Packet> toNotify = new LinkedList<Packet>();
-		while (!pendingMessages.isEmpty()) {
-			PendingData pendingMessage = pendingMessages.remove();
-			result.put(pendingMessage.getBuffer());
-			if (pendingMessage.getPacket() != null) {
-				toNotify.add(pendingMessage.getPacket());
-			}
-			if ((result.position() > targetSize)) {
-				break;
-			}
-		}
-		for (Packet message : toNotify) {
-			try {
-				handler.messageSent(this, message);
-			} catch (Exception e) {
-				log.error("Could not notify stream subsystem about sent message", e);
-			}
-		}
-		result.flip();
-		writtenBytes.addAndGet(result.limit());
-		return result;
-	}
+    /**
+     * Decode data sent by the client.
+     *
+     * @param data
+     *            the data to decode
+     * @return a list of decoded objects
+     */
+    public List<?> decode(IoBuffer data) {
+        log.debug("decode - state: {}", state);
+        if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+            // Connection is being closed, don't decode any new packets
+            return Collections.EMPTY_LIST;
+        }
+        readBytes.addAndGet(data.limit());
+        buffer.put(data);
+        buffer.flip();
+        return decoder.decodeBuffer(this, buffer);
+    }
 
-	public void setHandler(IRTMPHandler handler) {
-		this.handler = handler;
-	}
+    /**
+     * Send RTMP packet down the connection.
+     *
+     * @param packet
+     *            the packet to send
+     */
+    @Override
+    public void write(final Packet packet) {
+        log.debug("write - state: {}", state);
+        if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+            // Connection is being closed, don't send any new packets
+            return;
+        }
+        IoBuffer data;
+        try {
+            Red5.setConnectionLocal(this);
+            data = encoder.encode(packet);
+        } catch (Exception e) {
+            log.error("Could not encode message {}", packet, e);
+            return;
+        } finally {
+            Red5.setConnectionLocal(null);
+        }
 
-	public void setDecoder(RTMPProtocolDecoder decoder) {
-		this.decoder = (RTMPTProtocolDecoder) decoder;
-	}
+        if (data != null) {
+            // Mark packet as being written
+            writingMessage(packet);
+            //add to pending
+            pendingMessages.add(new PendingData(data, packet));
+        } else {
+            log.info("Response buffer was null after encoding");
+        }
+    }
 
-	public void setEncoder(RTMPProtocolEncoder encoder) {
-		this.encoder = (RTMPTProtocolEncoder) encoder;
-	}
+    protected IoBuffer foldPendingMessages(int targetSize) {
+        if (pendingMessages.isEmpty()) {
+            return null;
+        }
+        IoBuffer result = IoBuffer.allocate(2048);
+        result.setAutoExpand(true);
+        // We'll have to create a copy here to avoid endless recursion
+        List<Packet> toNotify = new LinkedList<Packet>();
+        while (!pendingMessages.isEmpty()) {
+            PendingData pendingMessage = pendingMessages.remove();
+            result.put(pendingMessage.getBuffer());
+            if (pendingMessage.getPacket() != null) {
+                toNotify.add(pendingMessage.getPacket());
+            }
+            if ((result.position() > targetSize)) {
+                break;
+            }
+        }
+        for (Packet message : toNotify) {
+            try {
+                handler.messageSent(this, message);
+            } catch (Exception e) {
+                log.error("Could not notify stream subsystem about sent message", e);
+            }
+        }
+        result.flip();
+        writtenBytes.addAndGet(result.limit());
+        return result;
+    }
+
+    public void setHandler(IRTMPHandler handler) {
+        this.handler = handler;
+    }
+
+    public void setDecoder(RTMPProtocolDecoder decoder) {
+        this.decoder = (RTMPTProtocolDecoder) decoder;
+    }
+
+    public void setEncoder(RTMPProtocolEncoder encoder) {
+        this.encoder = (RTMPTProtocolEncoder) encoder;
+    }
 }

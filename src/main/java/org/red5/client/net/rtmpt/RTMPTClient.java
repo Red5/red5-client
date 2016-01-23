@@ -39,78 +39,79 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPTClient extends BaseRTMPClientHandler {
 
-	private static final Logger log = LoggerFactory.getLogger(RTMPTClient.class);
+    private static final Logger log = LoggerFactory.getLogger(RTMPTClient.class);
 
-	// guarded by this
-	private RTMPTClientConnector connector;
+    // guarded by this
+    private RTMPTClientConnector connector;
 
-	private RTMPTCodecFactory codecFactory;
-	
-	public RTMPTClient() {
-		protocol = "rtmpt";
-		codecFactory = new RTMPTCodecFactory();
-		codecFactory.init();
-	}
+    private RTMPTCodecFactory codecFactory;
 
-	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
-		Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
-		if (!params.containsKey("tcUrl")) {
-			params.put("tcUrl", protocol + "://" + server + ':' + port + '/' + application);
-		}
-		return params;
-	}
+    public RTMPTClient() {
+        protocol = "rtmpt";
+        codecFactory = new RTMPTCodecFactory();
+        codecFactory.init();
+    }
 
-	protected synchronized void startConnector(String server, int port) {
-		connector = new RTMPTClientConnector(server, port, this);
-		log.debug("Created connector {}", connector);
-		connector.start();
-	}
+    public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
+        Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
+        if (!params.containsKey("tcUrl")) {
+            params.put("tcUrl", protocol + "://" + server + ':' + port + '/' + application);
+        }
+        return params;
+    }
 
-	/**
-	 * Received message object router.
-	 * 
-	 * @param message an IoBuffer or Packet
-	 */
-	public void messageReceived(Object message) {
-		if (message instanceof Packet) {
-			try {
-				messageReceived(conn, (Packet) message);
-			} catch (Exception e) {
-				log.warn("Exception on packet receive", e);
-			}
-		} else {
-			// raw buffer handling
-			IoBuffer in = (IoBuffer) message;
-			// get the handshake
-			RTMPHandshake handshake = (RTMPHandshake) conn.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-			if (handshake != null) {
-				log.debug("Handshake - client phase 2 - size: {}", in.remaining());
-				in.position(2);
-				IoBuffer out = handshake.doHandshake(in);
-				if (out != null) {
-					conn.writeRaw(out);
-					conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-					conn.setStateCode(RTMP.STATE_CONNECTED);
-					connectionOpened(conn);
-				}
-			}
-		}
-	}		
+    protected synchronized void startConnector(String server, int port) {
+        connector = new RTMPTClientConnector(server, port, this);
+        log.debug("Created connector {}", connector);
+        connector.start();
+    }
 
-	public synchronized void disconnect() {
-		if (connector != null) {
-			connector.setStopRequested(true);
-			connector.interrupt();
-		}
-		super.disconnect();
-	}
+    /**
+     * Received message object router.
+     * 
+     * @param message
+     *            an IoBuffer or Packet
+     */
+    public void messageReceived(Object message) {
+        if (message instanceof Packet) {
+            try {
+                messageReceived(conn, (Packet) message);
+            } catch (Exception e) {
+                log.warn("Exception on packet receive", e);
+            }
+        } else {
+            // raw buffer handling
+            IoBuffer in = (IoBuffer) message;
+            // get the handshake
+            RTMPHandshake handshake = (RTMPHandshake) conn.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
+            if (handshake != null) {
+                log.debug("Handshake - client phase 2 - size: {}", in.remaining());
+                in.position(2);
+                IoBuffer out = handshake.doHandshake(in);
+                if (out != null) {
+                    conn.writeRaw(out);
+                    conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+                    conn.setStateCode(RTMP.STATE_CONNECTED);
+                    connectionOpened(conn);
+                }
+            }
+        }
+    }
 
-	public RTMPProtocolDecoder getDecoder() {
-		return codecFactory.getRTMPDecoder();
-	}
+    public synchronized void disconnect() {
+        if (connector != null) {
+            connector.setStopRequested(true);
+            connector.interrupt();
+        }
+        super.disconnect();
+    }
 
-	public RTMPProtocolEncoder getEncoder() {
-		return codecFactory.getRTMPEncoder();
-	}
+    public RTMPProtocolDecoder getDecoder() {
+        return codecFactory.getRTMPDecoder();
+    }
+
+    public RTMPProtocolEncoder getEncoder() {
+        return codecFactory.getRTMPEncoder();
+    }
 
 }

@@ -6,7 +6,7 @@
         </encoder>
     </appender>
     <appender class="ch.qos.logback.core.FileAppender" name="FILE">
-        <File>red5-client.log</File>
+        <File>target/red5-client.log</File>
         <Append>false</Append>
         <encoder>
             <pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n

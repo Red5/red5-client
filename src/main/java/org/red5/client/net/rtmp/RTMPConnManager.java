@@ -41,205 +41,205 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
 
-	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
+    private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
 
-	private static int maxHandshakeTimeout = 7000;
-	
-	private static int maxInactivity = 60000;
-	
-	private static int pingInterval = 0;
-	
-	private static int executorQueueCapacity = 32;
+    private static int maxHandshakeTimeout = 7000;
 
-	protected static IConnectionManager<RTMPConnection> instance = new RTMPConnManager();
+    private static int maxInactivity = 60000;
 
-	protected ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<String, RTMPConnection>();
+    private static int pingInterval = 0;
 
-	protected AtomicInteger conns = new AtomicInteger();
-	
-	public static IConnectionManager<RTMPConnection> getInstance() {
-		return instance;
-	}
+    private static int executorQueueCapacity = 32;
 
-	/** {@inheritDoc} */
-	public RTMPConnection createConnection(Class<?> connCls) {
-		RTMPConnection conn = null;
-		if (RTMPConnection.class.isAssignableFrom(connCls)) {
-			try {
-				// create connection
-				conn = createConnectionInstance(connCls);
-				// add to local map
-				connMap.put(conn.getSessionId(), conn);
-				log.trace("Connections: {}", conns.incrementAndGet());
-				log.trace("Connection created: {}", conn);
-			} catch (Exception ex) {
-				log.warn("Exception creating connection", ex);
-			}
-		}
-		return conn;
-	}
-	
-	/** {@inheritDoc} */
-	public RTMPConnection createConnection(Class<?> connCls, String sessionId) {
-		RTMPConnection conn = null;
-		if (RTMPConnection.class.isAssignableFrom(connCls)) {
-			try {
-				// create connection
-				conn = createConnectionInstance(connCls);
-				// set the session id
-				if (conn instanceof RTMPTClientConnection) {
-					((RTMPTClientConnection) conn).setSessionId(sessionId);
-				}
-				// add to local map
-				connMap.put(conn.getSessionId(), conn);
-				log.trace("Connections: {}", conns.incrementAndGet());
-				log.trace("Connection created: {}", conn);
-			} catch (Exception ex) {
-				log.warn("Exception creating connection", ex);
-			}
-		}
-		return conn;
-	}
+    protected static IConnectionManager<RTMPConnection> instance = new RTMPConnManager();
 
-	/**
-	 * Adds a connection.
-	 * 
-	 * @param conn
-	 */
-	public void setConnection(RTMPConnection conn) {
-		log.trace("Adding connection: {}", conn);
-		int id = conn.getId();
-		if (id == -1) {
-			log.debug("Connection has unsupported id, using session id hash");
-			id = conn.getSessionId().hashCode();
-		}
-		log.debug("Connection id: {} session id hash: {}", conn.getId(), conn.getSessionId().hashCode());
-	}
+    protected ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<String, RTMPConnection>();
 
-	/**
-	 * Returns a connection for a given client id.
-	 * 
-	 * @param clientId
-	 * @return connection if found and null otherwise
-	 */
-	public RTMPConnection getConnection(int clientId) {
-		log.trace("Getting connection by client id: {}", clientId);
-		for (RTMPConnection conn : connMap.values()) {
-			if (conn.getId() == clientId) {
-				return connMap.get(conn.getSessionId());
-			}
-		}
-		return null;
-	}
+    protected AtomicInteger conns = new AtomicInteger();
 
-	/**
-	 * Returns a connection for a given session id.
-	 * 
-	 * @param sessionId
-	 * @return connection if found and null otherwise
-	 */
-	public RTMPConnection getConnectionBySessionId(String sessionId) {
-		log.debug("Getting connection by session id: {}", sessionId);
-		if (connMap.containsKey(sessionId)) {
-			return connMap.get(sessionId);
-		} else {
-			log.warn("Connection not found for {}", sessionId);
-			if (log.isTraceEnabled()) {
-				log.trace("Connections ({}) {}", connMap.size(), connMap.values());
-			}
-		}
-		return null;
-	}
+    public static IConnectionManager<RTMPConnection> getInstance() {
+        return instance;
+    }
 
-	/** {@inheritDoc} */
-	public RTMPConnection removeConnection(int clientId) {
-		log.trace("Removing connection with id: {}", clientId);
-		// remove from map
-		for (RTMPConnection conn : connMap.values()) {
-			if (conn.getId() == clientId) {
-				// remove the conn
-				return removeConnection(conn.getSessionId());
-			}
-		}
-		log.warn("Connection was not removed by id: {}", clientId);
-		return null;
-	}
+    /** {@inheritDoc} */
+    public RTMPConnection createConnection(Class<?> connCls) {
+        RTMPConnection conn = null;
+        if (RTMPConnection.class.isAssignableFrom(connCls)) {
+            try {
+                // create connection
+                conn = createConnectionInstance(connCls);
+                // add to local map
+                connMap.put(conn.getSessionId(), conn);
+                log.trace("Connections: {}", conns.incrementAndGet());
+                log.trace("Connection created: {}", conn);
+            } catch (Exception ex) {
+                log.warn("Exception creating connection", ex);
+            }
+        }
+        return conn;
+    }
 
-	/** {@inheritDoc} */
-	public RTMPConnection removeConnection(String sessionId) {
-		log.debug("Removing connection with session id: {}", sessionId);
-		if (log.isTraceEnabled()) {
-			log.trace("Connections ({}) at pre-remove: {}", connMap.size(), connMap.values());
-		}
-		// remove from map
-		RTMPConnection conn = connMap.remove(sessionId);
-		if (conn != null) {
-			log.trace("Connections: {}", conns.decrementAndGet());
-			Red5.setConnectionLocal(null);
-		}
-		return conn;
-	}
+    /** {@inheritDoc} */
+    public RTMPConnection createConnection(Class<?> connCls, String sessionId) {
+        RTMPConnection conn = null;
+        if (RTMPConnection.class.isAssignableFrom(connCls)) {
+            try {
+                // create connection
+                conn = createConnectionInstance(connCls);
+                // set the session id
+                if (conn instanceof RTMPTClientConnection) {
+                    ((RTMPTClientConnection) conn).setSessionId(sessionId);
+                }
+                // add to local map
+                connMap.put(conn.getSessionId(), conn);
+                log.trace("Connections: {}", conns.incrementAndGet());
+                log.trace("Connection created: {}", conn);
+            } catch (Exception ex) {
+                log.warn("Exception creating connection", ex);
+            }
+        }
+        return conn;
+    }
 
-	/** {@inheritDoc} */
-	public Collection<RTMPConnection> getAllConnections() {
-		ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
-		list.addAll(connMap.values());
-		return list;
-	}
+    /**
+     * Adds a connection.
+     * 
+     * @param conn
+     */
+    public void setConnection(RTMPConnection conn) {
+        log.trace("Adding connection: {}", conn);
+        int id = conn.getId();
+        if (id == -1) {
+            log.debug("Connection has unsupported id, using session id hash");
+            id = conn.getSessionId().hashCode();
+        }
+        log.debug("Connection id: {} session id hash: {}", conn.getId(), conn.getSessionId().hashCode());
+    }
 
-	/** {@inheritDoc} */
-	public Collection<RTMPConnection> removeConnections() {
-		ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
-		list.addAll(connMap.values());
-		connMap.clear();
-		conns.set(0);
-		return list;
-	}
-	
-	/**
-	 * Creates a connection instance based on the supplied type.
-	 * 
-	 * @param cls
-	 * @return connection
-	 * @throws Exception
-	 */
-	public RTMPConnection createConnectionInstance(Class<?> cls) throws Exception {
-		RTMPConnection conn = null;
-		if (cls == RTMPMinaConnection.class) {
-			conn = (RTMPMinaConnection) cls.newInstance();
-		} else if (cls == RTMPTConnection.class) {
-			conn = (RTMPTClientConnection) cls.newInstance();
-		} else {
-			conn = (RTMPConnection) cls.newInstance();
-		}
-		conn.setMaxHandshakeTimeout(maxHandshakeTimeout);
-		conn.setMaxInactivity(maxInactivity);
-		conn.setPingInterval(pingInterval);
-		// setup executor
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(1);
-		executor.setDaemon(true);
-		executor.setMaxPoolSize(1);
-		executor.setQueueCapacity(executorQueueCapacity);
-		executor.initialize();
-		conn.setExecutor(executor);
-		return conn;
-	}
+    /**
+     * Returns a connection for a given client id.
+     * 
+     * @param clientId
+     * @return connection if found and null otherwise
+     */
+    public RTMPConnection getConnection(int clientId) {
+        log.trace("Getting connection by client id: {}", clientId);
+        for (RTMPConnection conn : connMap.values()) {
+            if (conn.getId() == clientId) {
+                return connMap.get(conn.getSessionId());
+            }
+        }
+        return null;
+    }
 
-	public static void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
-		RTMPConnManager.maxHandshakeTimeout = maxHandshakeTimeout;
-	}
+    /**
+     * Returns a connection for a given session id.
+     * 
+     * @param sessionId
+     * @return connection if found and null otherwise
+     */
+    public RTMPConnection getConnectionBySessionId(String sessionId) {
+        log.debug("Getting connection by session id: {}", sessionId);
+        if (connMap.containsKey(sessionId)) {
+            return connMap.get(sessionId);
+        } else {
+            log.warn("Connection not found for {}", sessionId);
+            if (log.isTraceEnabled()) {
+                log.trace("Connections ({}) {}", connMap.size(), connMap.values());
+            }
+        }
+        return null;
+    }
 
-	public static void setMaxInactivity(int maxInactivity) {
-		RTMPConnManager.maxInactivity = maxInactivity;
-	}
+    /** {@inheritDoc} */
+    public RTMPConnection removeConnection(int clientId) {
+        log.trace("Removing connection with id: {}", clientId);
+        // remove from map
+        for (RTMPConnection conn : connMap.values()) {
+            if (conn.getId() == clientId) {
+                // remove the conn
+                return removeConnection(conn.getSessionId());
+            }
+        }
+        log.warn("Connection was not removed by id: {}", clientId);
+        return null;
+    }
 
-	public static void setPingInterval(int pingInterval) {
-		RTMPConnManager.pingInterval = pingInterval;
-	}
+    /** {@inheritDoc} */
+    public RTMPConnection removeConnection(String sessionId) {
+        log.debug("Removing connection with session id: {}", sessionId);
+        if (log.isTraceEnabled()) {
+            log.trace("Connections ({}) at pre-remove: {}", connMap.size(), connMap.values());
+        }
+        // remove from map
+        RTMPConnection conn = connMap.remove(sessionId);
+        if (conn != null) {
+            log.trace("Connections: {}", conns.decrementAndGet());
+            Red5.setConnectionLocal(null);
+        }
+        return conn;
+    }
 
-	public static void setExecutorQueueCapacity(int executorQueueCapacity) {
-		RTMPConnManager.executorQueueCapacity = executorQueueCapacity;
-	}
+    /** {@inheritDoc} */
+    public Collection<RTMPConnection> getAllConnections() {
+        ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
+        list.addAll(connMap.values());
+        return list;
+    }
+
+    /** {@inheritDoc} */
+    public Collection<RTMPConnection> removeConnections() {
+        ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
+        list.addAll(connMap.values());
+        connMap.clear();
+        conns.set(0);
+        return list;
+    }
+
+    /**
+     * Creates a connection instance based on the supplied type.
+     * 
+     * @param cls
+     * @return connection
+     * @throws Exception
+     */
+    public RTMPConnection createConnectionInstance(Class<?> cls) throws Exception {
+        RTMPConnection conn = null;
+        if (cls == RTMPMinaConnection.class) {
+            conn = (RTMPMinaConnection) cls.newInstance();
+        } else if (cls == RTMPTConnection.class) {
+            conn = (RTMPTClientConnection) cls.newInstance();
+        } else {
+            conn = (RTMPConnection) cls.newInstance();
+        }
+        conn.setMaxHandshakeTimeout(maxHandshakeTimeout);
+        conn.setMaxInactivity(maxInactivity);
+        conn.setPingInterval(pingInterval);
+        // setup executor
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setDaemon(true);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(executorQueueCapacity);
+        executor.initialize();
+        conn.setExecutor(executor);
+        return conn;
+    }
+
+    public static void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
+        RTMPConnManager.maxHandshakeTimeout = maxHandshakeTimeout;
+    }
+
+    public static void setMaxInactivity(int maxInactivity) {
+        RTMPConnManager.maxInactivity = maxInactivity;
+    }
+
+    public static void setPingInterval(int pingInterval) {
+        RTMPConnManager.pingInterval = pingInterval;
+    }
+
+    public static void setExecutorQueueCapacity(int executorQueueCapacity) {
+        RTMPConnManager.executorQueueCapacity = executorQueueCapacity;
+    }
 
 }

@@ -22,18 +22,18 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.codec.RTMP;
 
 public class RTMPTClientConnection extends BaseRTMPTConnection {
-	
-	public RTMPTClientConnection() {
-		super(PERSISTENT);
-		this.state = new RTMP();
-	}
-	
-	protected void onInactive() {
-		this.close();
-	}
-	
-	public IoBuffer getPendingMessages(int targetSize) {
-		return foldPendingMessages(targetSize);
-	}
-	
+
+    public RTMPTClientConnection() {
+        super(PERSISTENT);
+        this.state = new RTMP();
+    }
+
+    protected void onInactive() {
+        this.close();
+    }
+
+    public IoBuffer getPendingMessages(int targetSize) {
+        return foldPendingMessages(targetSize);
+    }
+
 }
