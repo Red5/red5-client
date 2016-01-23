@@ -59,8 +59,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <red5-common.version>1.0.7-SNAPSHOT</red5-common.version>
         <red5-io.version>1.0.7-SNAPSHOT</red5-io.version>
-        <spring.version>4.2.3.RELEASE</spring.version>
-        <mina.version>2.0.9</mina.version>
+        <spring.version>4.2.4.RELEASE</spring.version>
+        <mina.version>(2.0.9,2.0.11)</mina.version>
         <slf4j.version>1.7.9</slf4j.version>
         <logback.version>1.1.2</logback.version>
         <bc.version>1.53</bc.version>
