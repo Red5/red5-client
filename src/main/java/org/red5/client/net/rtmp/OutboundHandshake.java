@@ -46,8 +46,6 @@ public class OutboundHandshake extends RTMPHandshake {
 
     private byte[] swfHash;
 
-    private int swfSize;
-
     private int digestPosClient;
 
     private int digestPosServer;
@@ -226,7 +224,7 @@ public class OutboundHandshake extends RTMPHandshake {
             System.arraycopy(s1, digestPosServer, incomingDigest, 0, DIGEST_LENGTH);
             log.debug("Server digest: {}", Hex.encodeHexString(incomingDigest));
             // generate the SWF verification token
-            if (swfHash != null) {
+            if (swfSize > 0) {
                 calculateSwfVerification(s1, swfHash, swfSize);
             }
             if (useEncryption()) {
