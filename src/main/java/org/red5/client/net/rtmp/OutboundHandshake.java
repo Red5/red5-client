@@ -19,7 +19,6 @@
 package org.red5.client.net.rtmp;
 
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.util.Arrays;
 
@@ -50,7 +49,10 @@ public class OutboundHandshake extends RTMPHandshake {
 
     private int digestPosServer;
 
-    /** Server initial response S1 */
+    // client initial request C1
+    private byte[] c1 = null;
+
+    // server initial response S1
     private byte[] s1 = null;
 
     public OutboundHandshake() {
@@ -153,18 +155,22 @@ public class OutboundHandshake extends RTMPHandshake {
             }
             digestPosClient = getDigestOffset(algorithm, handshakeBytes, 0);
             log.debug("Client digest position offset: {} algorithm: {}", digestPosClient, algorithm);
-            calculateDigest(digestPosClient, handshakeBytes, 0, GENUINE_FP_KEY, 30, handshakeBytes, digestPosClient);
+            c1 = new byte[Constants.HANDSHAKE_SIZE];
+            System.arraycopy(handshakeBytes, 0, c1, 0, Constants.HANDSHAKE_SIZE);
+            calculateDigest(digestPosClient, handshakeBytes, 0, GENUINE_FP_KEY, 30, c1, digestPosClient);
             // local storage of outgoing digest
-            System.arraycopy(handshakeBytes, digestPosClient, outgoingDigest, 0, DIGEST_LENGTH);
+            System.arraycopy(c1, digestPosClient, outgoingDigest, 0, DIGEST_LENGTH);
             log.debug("Client digest: {}", Hex.encodeHexString(outgoingDigest));
-            log.debug("Digest is valid: {}", verifyDigest(digestPosClient, handshakeBytes, RTMPHandshake.GENUINE_FP_KEY, 30));
+            log.debug("Digest is valid: {}", verifyDigest(digestPosClient, c1, RTMPHandshake.GENUINE_FP_KEY, 30));
         }
         if (log.isTraceEnabled()) {
-            log.trace("C1: {}", Hex.encodeHexString(handshakeBytes));
+            log.trace("C1: {}", Hex.encodeHexString(c1));
         }
         // put the generated data into our request
-        request.put(handshakeBytes);
+        request.put(c1);
         request.flip();
+        // clear original base bytes
+        handshakeBytes = null;
         return request;
     }
 
@@ -318,7 +324,7 @@ public class OutboundHandshake extends RTMPHandshake {
             // validate server response part 2, not really required for client
             byte[] signature = new byte[DIGEST_LENGTH];
             byte[] digest = new byte[DIGEST_LENGTH];
-            calculateHMAC_SHA256(handshakeBytes, digestPosClient, DIGEST_LENGTH, GENUINE_FMS_KEY, GENUINE_FMS_KEY.length, digest, 0);
+            calculateHMAC_SHA256(c1, digestPosClient, DIGEST_LENGTH, GENUINE_FMS_KEY, GENUINE_FMS_KEY.length, digest, 0);
             calculateHMAC_SHA256(s2, 0, Constants.HANDSHAKE_SIZE - DIGEST_LENGTH, digest, DIGEST_LENGTH, signature, 0);
             log.debug("Digest key: {}", Hex.encodeHexString(digest));
             // FP10 stuff
@@ -425,6 +431,10 @@ public class OutboundHandshake extends RTMPHandshake {
         calculateHMAC_SHA256(bytes, 0, bytes.length, GENUINE_FP_KEY, 30, swfHash, 0);
         swfSize = bytes.length;
         log.info("Verification - size: {}, hash: {}", swfSize, Hex.encodeHexString(swfHash));
+    }
+
+    public byte[] getHandshakeBytes() {
+        return c1;
     }
 
 }
