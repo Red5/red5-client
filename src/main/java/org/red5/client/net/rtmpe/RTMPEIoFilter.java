@@ -47,8 +47,6 @@ public class RTMPEIoFilter extends IoFilterAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(RTMPEIoFilter.class);
 
-    private ThreadLocal<byte[]> buffer; 
-    
     @Override
     public void messageReceived(NextFilter nextFilter, IoSession session, Object obj) throws Exception {
         String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
@@ -89,7 +87,7 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                 break;
             case RTMP.STATE_CONNECT:
                 // we're expecting S0+S1 here
-                log.trace("S0S1 byte order: {}", message.order());
+                //log.trace("S0S1 byte order: {}", message.order());
                 // get the handshake from the session
                 handshake = (OutboundHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
                 int handshakeType = handshake.getHandshakeType();
@@ -133,13 +131,12 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                         // store the remaining bytes in a thread local for use by S2 decoding
                         byte[] remainder = new byte[remaining];
                         message.get(remainder);
-                        buffer = new ThreadLocal<>();
-                        buffer.set(remainder);
+                        session.setAttribute("handshake.buffer", remainder);
                         log.trace("Stored {} bytes for later decoding", remaining);
                     }
                     IoBuffer c2 = handshake.decodeServerResponse1(IoBuffer.wrap(dst));
                     if (c2 != null) {
-                        log.trace("C2 byte order: {}", c2.order());
+                        //log.trace("C2 byte order: {}", c2.order());
                         session.write(c2);
                     } else {
                         conn.close();
@@ -154,72 +151,71 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                 log.debug("decodeHandshakeS2 - buffer: {}", message);
                 remaining = message.remaining();
                 // check for remaining stored bytes left over from S0S1
-                if (buffer != null) {
-                    remaining += buffer.get().length;
-                    log.trace("Remainder: {}", Hex.encodeHexString(buffer.get()));
+                byte[] remainder = null;
+                if (session.containsAttribute("handshake.buffer")) {
+                    remainder = (byte[]) session.getAttribute("handshake.buffer");
+                    remaining += remainder.length;
+                    log.trace("Remainder: {}", Hex.encodeHexString(remainder));
                 }
                 log.trace("Incoming S2 size: {}", remaining);
-                if (remaining >= (Constants.HANDSHAKE_SIZE + 1)) {
+                if (remaining >= Constants.HANDSHAKE_SIZE) {
                     // create array for decode
                     byte[] dst = new byte[Constants.HANDSHAKE_SIZE];
-                    // get the connection type byte, may want to set this on the conn in the future
-                    byte connectionType = 0;
                     // check for remaining stored bytes left over from S0S1 and prepend to the dst array
-                    if (buffer != null) {
-                        byte[] remainder = buffer.get();
-                        connectionType = remainder[0];
+                    if (remainder != null) {
                         // copy into dst
-                        System.arraycopy(remainder, 1, dst, 0, remainder.length - 1);
+                        System.arraycopy(remainder, 0, dst, 0, remainder.length);
+                        log.trace("Copied {} from buffer {}", remainder.length, Hex.encodeHexString(dst));
                         // copy
-                        message.get(dst, remainder.length, message.limit());
-                        // reset threadlocal
-                        buffer.set(null);
+                        message.get(dst, remainder.length, (Constants.HANDSHAKE_SIZE - remainder.length));
+                        log.trace("Copied {} from message {}", (Constants.HANDSHAKE_SIZE - remainder.length), Hex.encodeHexString(dst));
+                        // remove buffer
+                        session.removeAttribute("buffer");
                     } else {
-                        connectionType = message.get();
                         // copy
                         message.get(dst);
+                        log.trace("Copied {}", Hex.encodeHexString(dst));
                     }
-                    log.trace("Incoming S2 connection type: {}", connectionType);
-                    log.debug("S2 - buffer: {}", Hex.encodeHexString(dst));
-                    // buffer any extra bytes
-                    remaining = message.remaining();
-                    if (log.isTraceEnabled()) {
-                        log.trace("Incoming S2 remaining size: {}", remaining);
+                    int index = message.indexOf(handshake.getHandshakeType());
+                    if (index != -1) {
+                        log.trace("Connection type index in message: {}", index);
+                        message.position(index);
                     }
+                    log.trace("Message - pos: {} {}", message.position(), message);
+                    //if (log.isTraceEnabled()) {
+                    //    log.trace("S2 - buffer: {}", Hex.encodeHexString(dst));
+                    //}
                     if (handshake.decodeServerResponse2(IoBuffer.wrap(dst))) {
                         log.debug("S2 decoding successful");
-                    } else {
-                        log.debug("S2 decoding failed");
-                    }
-                    // set state to indicate we're connected
-                    conn.getState().setState(RTMP.STATE_CONNECTED);
-                    log.debug("Connected, removing handshake data");
-                    // remove handshake from session now that we are connected
-                    session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-                    // add protocol filter as the last one in the chain
-                    log.debug("Adding RTMP protocol filter");
-                    session.getFilterChain().addAfter("rtmpeFilter", "protocolFilter", new ProtocolCodecFilter(new RTMPMinaCodecFactory()));
-                    if (handshake.useEncryption()) {
-                        // set encryption flag the rtmp state
-                        rtmp.setEncrypted(true);
-                        // ensure we have received enough bytes to be encrypted
-                        long readBytesCount = conn.getReadBytes();
-                        long writeBytesCount = conn.getWrittenBytes();
-                        log.trace("Bytes read: {} written: {}", readBytesCount, writeBytesCount);
-                        // don't remove the handshake when using RTMPE until we've written all the handshake data
-                        if (writeBytesCount >= (Constants.HANDSHAKE_SIZE * 2)) {
-                            // if we are connected and doing encryption, add the ciphers
+                        if (handshake.useEncryption()) {
+                            // set encryption flag the rtmp state
+                            rtmp.setEncrypted(true);
+                            // add the ciphers
                             log.debug("Adding ciphers to the session");
                             session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
                             session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
                         }
+                        // set state to indicate we're connected
+                        conn.getState().setState(RTMP.STATE_CONNECTED);
+                        log.debug("Connected, removing handshake data");
+                        // remove handshake from session now that we are connected
+                        session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+                        // add protocol filter as the last one in the chain
+                        log.debug("Adding RTMP protocol filter");
+                        session.getFilterChain().addAfter("rtmpeFilter", "protocolFilter", new ProtocolCodecFilter(new RTMPMinaCodecFactory()));
+                        // flag to indicate that we're read to be an opened rtmp client
+                        session.setAttribute(OutboundHandshake.RTMP_HANDSHAKE_COMPLETED, null);
+                        if (message.remaining() > 0) {
+                            log.trace("Remaining: {}", message.remaining());
+                            // nothing to send to the server after we receive s2
+                            nextFilter.messageReceived(session, message);
+                        } else {
+                            message.free();
+                            nextFilter.messageReceived(session, null);
+                        }
+                    } else {
+                        log.debug("S2 decoding failed");
                     }
-                    // flag to indicate that we're read to be an opened rtmp client
-                    session.setAttribute(OutboundHandshake.RTMP_HANDSHAKE_COMPLETED, null);
-                    // compact here?
-                    message.compact();
-                    // nothing to send to the server after we receive s2
-                    nextFilter.messageReceived(session, message);
                 }
                 break;
             case RTMP.STATE_ERROR:

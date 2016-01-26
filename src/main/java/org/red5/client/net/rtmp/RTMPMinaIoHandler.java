@@ -29,6 +29,7 @@ import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.message.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 /**
  * Handles all RTMP protocol events fired by the MINA framework.
@@ -59,8 +60,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         // add the handshake
         session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, outgoingHandshake);
         // setup swf verification
-        if (handler.isSwfVerification()) {
-            outgoingHandshake.initSwfVerification((String) handler.getConnectionParams().get("swfUrl"));
+        String swfUrl = (String) handler.getConnectionParams().get("swfUrl");
+        log.debug("SwfUrl: {}", swfUrl);
+        if (!StringUtils.isEmpty(swfUrl)) {
+            outgoingHandshake.initSwfVerification(swfUrl);
         }
         //if handler is rtmpe client set encryption on the protocol state
         //if (handler instanceof RTMPEClient) {
@@ -121,7 +124,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
                 log.debug("rawBufferRecieved: {}", Hex.encodeHexString(((IoBuffer) message).array()));
             }
         } else {
-            conn.handleMessageReceived((Packet) message);
+            if (message != null) {
+                conn.handleMessageReceived((Packet) message);
+            }
         }
     }
 

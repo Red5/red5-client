@@ -22,10 +22,6 @@ public class YouTubeConnectTest {
 
     private AtomicBoolean finished = new AtomicBoolean(false);
 
-    static {
-        //System.setProperty("force.old.fp.handshake", "true");
-    }
-
     @Before
     public void setUp() throws Exception {
     }
@@ -107,7 +103,7 @@ public class YouTubeConnectTest {
 
     @Test
     public void testLocalhostRed5Publish() throws InterruptedException {
-        log.info("\ntestYouTubePublish");
+        log.info("\ntestLocalhostRed5Publish");
         String host = "localhost";
         int port = 1935;
         String app = "live";

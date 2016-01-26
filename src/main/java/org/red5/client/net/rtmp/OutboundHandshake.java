@@ -212,19 +212,8 @@ public class OutboundHandshake extends RTMPHandshake {
             //    log.info("Invalid RTMP connection data detected, you may experience errors");
             //}
             // get the server digest
-            log.trace("Trying algorithm: {}", algorithm);
-            digestPosServer = getDigestOffset(algorithm, s1, 0);
-            log.debug("Server digest position offset: {}", digestPosServer);
-            if (!verifyDigest(digestPosServer, s1, GENUINE_FMS_KEY, 36)) {
-                // try a different position
-                algorithm ^= 1;
-                log.trace("Trying algorithm: {}", algorithm);
-                digestPosServer = getDigestOffset(algorithm, s1, 0);
-                log.debug("Server digest position offset: {}", digestPosServer);
-                if (!verifyDigest(digestPosServer, s1, GENUINE_FMS_KEY, 36)) {
-                    log.warn("Server digest verification failed");
-                    return null;
-                }
+            if (!getServerDigestPosition()) {
+                return null;
             }
             // digest verification passed, store the digest locally
             System.arraycopy(s1, digestPosServer, incomingDigest, 0, DIGEST_LENGTH);
@@ -343,21 +332,46 @@ public class OutboundHandshake extends RTMPHandshake {
             }
             log.debug("Signature calculated: {}", Hex.encodeHexString(signature));
             log.debug("Server sent signature: {}", Hex.encodeHexString(s2));
-            for (int i = 0; i < DIGEST_LENGTH; i++) {
-                if (signature[i] != s2[Constants.HANDSHAKE_SIZE - DIGEST_LENGTH + i]) {
-                    log.info("Server not genuine Adobe!");
-                    return false;
-                }
+            if (!Arrays.equals(signature, Arrays.copyOfRange(s2, (Constants.HANDSHAKE_SIZE - DIGEST_LENGTH), (Constants.HANDSHAKE_SIZE - DIGEST_LENGTH) + DIGEST_LENGTH))) {
+                log.info("Server not genuine Adobe");
+                return false;
+            } else {
+                log.debug("Genuine Adobe server");
             }
         } else {
-            for (int i = 0; i < Constants.HANDSHAKE_SIZE; i++) {
-                if (s2[i] != handshakeBytes[i]) {
-                    log.info("Client signature doesn't match!");
-                    break;
-                }
+            if (!Arrays.equals(s2, c1)) {
+                log.info("Client signature doesn't match!");
             }
         }
         return true;
+    }
+
+    /**
+     * Gets and verifies the server digest.
+     * 
+     * @return true if the server digest is found and verified, false otherwise
+     */
+    private boolean getServerDigestPosition() {
+        boolean result = false;
+        //log.trace("BigEndian bytes: {}", Hex.encodeHexString(s1));
+        log.trace("Trying algorithm: {}", algorithm);
+        digestPosServer = getDigestOffset(algorithm, s1, 0);
+        log.debug("Server digest position offset: {}", digestPosServer);
+        if (!(result = verifyDigest(digestPosServer, s1, GENUINE_FMS_KEY, 36))) {
+            // try a different position
+            algorithm ^= 1;
+            log.trace("Trying algorithm: {}", algorithm);
+            digestPosServer = getDigestOffset(algorithm, s1, 0);
+            log.debug("Server digest position offset: {}", digestPosServer);
+            if (!(result = verifyDigest(digestPosServer, s1, GENUINE_FMS_KEY, 36))) {
+                log.warn("Server digest verification failed");
+            } else {
+                log.debug("Server digest verified");
+            }
+        } else {
+            log.debug("Server digest verified");
+        }
+        return result;
     }
 
     /**
