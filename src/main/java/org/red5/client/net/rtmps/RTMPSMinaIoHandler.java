@@ -38,7 +38,7 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
-import org.red5.server.net.rtmp.RTMPMinaIoHandler;
+import org.red5.client.net.rtmp.RTMPMinaIoHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
