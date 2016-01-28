@@ -16,6 +16,14 @@ import org.red5.server.net.rtmp.event.Notify;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Tests for connecting to servers.
+ * <pre>
+ * rtmpdump -V -z -r "rtmp://a.rtmp.youtube.com/live2" -a "live2" -y "<your stream name here>" -v -f "WIN 11,2,202,235"
+ * </pre>
+ * 
+ * @author Paul Gregoire (mondain@gmail.com)
+ */
 public class YouTubeConnectTest {
 
     private Logger log = LoggerFactory.getLogger(YouTubeConnectTest.class);
@@ -30,7 +38,7 @@ public class YouTubeConnectTest {
     public void tearDown() throws Exception {
     }
 
-    //@Test
+    @Test
     public void testYouTubePublish() throws InterruptedException {
         log.info("\ntestYouTubePublish");
         String youtubeHost = "a.rtmp.youtube.com";
@@ -101,11 +109,13 @@ public class YouTubeConnectTest {
         log.info("Test - end");
     }
 
-    @Test
+    //@Test
     public void testLocalhostRed5Publish() throws InterruptedException {
         log.info("\ntestLocalhostRed5Publish");
         String host = "localhost";
         int port = 1935;
+        // check to see if a server is listening on 1935 before proceeding
+        
         String app = "live";
         final String publishName = "test";
         final RTMPClient client = new RTMPClient();

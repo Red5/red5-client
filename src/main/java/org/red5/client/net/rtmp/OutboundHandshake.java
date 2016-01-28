@@ -19,11 +19,13 @@
 package org.red5.client.net.rtmp;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.Arrays;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.mina.core.buffer.IoBuffer;
+import org.bouncycastle.util.BigIntegers;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.message.Constants;
@@ -80,9 +82,8 @@ public class OutboundHandshake extends RTMPHandshake {
     @Override
     protected void createHandshakeBytes() {
         log.trace("createHandshakeBytes");
-        handshakeBytes = new byte[Constants.HANDSHAKE_SIZE];
-        // fill with random bytes
-        random.nextBytes(handshakeBytes);
+        BigInteger bi = new BigInteger((Constants.HANDSHAKE_SIZE * 8), random);
+        handshakeBytes = BigIntegers.asUnsignedByteArray(bi);
     }
 
     /**
@@ -250,8 +251,8 @@ public class OutboundHandshake extends RTMPHandshake {
                 }
             }
             // create the response
-            byte[] c2 = new byte[Constants.HANDSHAKE_SIZE];
-            random.nextBytes(c2);
+            BigInteger bi = new BigInteger(Constants.HANDSHAKE_SIZE * 8, random);
+            byte[] c2 = BigIntegers.asUnsignedByteArray(bi);
             // calculate response now
             byte[] signatureResp = new byte[DIGEST_LENGTH];
             byte[] digestResp = new byte[DIGEST_LENGTH];
@@ -273,8 +274,10 @@ public class OutboundHandshake extends RTMPHandshake {
                 }
             }
             log.debug("Client signature calculated: {}", Hex.encodeHexString(signatureResp));
-            System.arraycopy(signatureResp, 0, c2, Constants.HANDSHAKE_SIZE - DIGEST_LENGTH, DIGEST_LENGTH);
-            response = IoBuffer.wrap(c2);
+            response = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
+            response.put(c2, 0, Constants.HANDSHAKE_SIZE - DIGEST_LENGTH);
+            response.put(signatureResp);
+            response.flip();
         } else {
             // send the server handshake back as a response
             response = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
