@@ -29,7 +29,6 @@ import org.red5.server.api.Red5;
 import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
-import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -207,7 +206,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
         RTMPConnection conn = null;
         if (cls == RTMPMinaConnection.class) {
             conn = (RTMPMinaConnection) cls.newInstance();
-        } else if (cls == RTMPTConnection.class) {
+        } else if (cls == RTMPTClientConnection.class) {
             conn = (RTMPTClientConnection) cls.newInstance();
         } else {
             conn = (RTMPConnection) cls.newInstance();
