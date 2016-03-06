@@ -118,8 +118,6 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                     // copy out 1536 bytes
                     message.get(dst);
                     log.debug("S1 - buffer: {}", Hex.encodeHexString(dst));
-                    // set state to indicate we're waiting for S2
-                    conn.getState().setState(RTMP.STATE_HANDSHAKE);
                     // buffer any extra bytes
                     int remaining = message.remaining();
                     if (remaining > 0) {
@@ -129,8 +127,26 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                     }
                     IoBuffer c2 = handshake.decodeServerResponse1(IoBuffer.wrap(dst));
                     if (c2 != null) {
+                        // set state to indicate we're waiting for S2
+                        conn.getState().setState(RTMP.STATE_HANDSHAKE);
                         //log.trace("C2 byte order: {}", c2.order());
-                        session.write(c2);
+                        session.write(c2);                        
+                        // if we got S0S1+S2 continue processing
+                        if (handshake.getBufferSize() >= Constants.HANDSHAKE_SIZE) {
+                            IoBuffer buf = handshake.getBufferAsIoBuffer();
+                            if (handshake.decodeServerResponse2(buf)) {
+                                log.debug("S2 decoding successful");
+                                completeConnection(nextFilter, session, buf, conn, rtmp, handshake);
+//                                conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+//                                conn.setStateCode(RTMP.STATE_CONNECTED);
+//                                connectionOpened(conn);
+                            } else {
+                                log.warn("Handshake failed on S2 processing");
+                                // complete the connection regardless of the S2 failure
+                                completeConnection(nextFilter, session, buf, conn, rtmp, handshake);
+                                //conn.close();
+                            }
+                        }
                     } else {
                         conn.close();
                     }
@@ -160,34 +176,11 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                     log.trace("Message - pos: {} {}", buf.position(), message);
                     if (handshake.decodeServerResponse2(IoBuffer.wrap(dst))) {
                         log.debug("S2 decoding successful");
-                        if (handshake.useEncryption()) {
-                            // set encryption flag the rtmp state
-                            rtmp.setEncrypted(true);
-                            // add the ciphers
-                            log.debug("Adding ciphers to the session");
-                            session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
-                            session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
-                        }
-                        // set state to indicate we're connected
-                        conn.getState().setState(RTMP.STATE_CONNECTED);
-                        log.debug("Connected, removing handshake data");
-                        // remove handshake from session now that we are connected
-                        session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-                        // add protocol filter as the last one in the chain
-                        log.debug("Adding RTMP protocol filter");
-                        session.getFilterChain().addAfter("rtmpeFilter", "protocolFilter", new ProtocolCodecFilter(new RTMPMinaCodecFactory()));
-                        // flag to indicate that we're read to be an opened rtmp client
-                        session.setAttribute(OutboundHandshake.RTMP_HANDSHAKE_COMPLETED, null);
-                        if (buf.remaining() > 0) {
-                            log.trace("Remaining: {}", buf.remaining());
-                            // nothing to send to the server after we receive s2
-                            nextFilter.messageReceived(session, buf);
-                        } else {
-                            buf.free();
-                            nextFilter.messageReceived(session, null);
-                        }
+                        completeConnection(nextFilter, session, buf, conn, rtmp, handshake);
                     } else {
                         log.debug("S2 decoding failed");
+                        // complete the connection regardless of the S2 failure
+                        completeConnection(nextFilter, session, buf, conn, rtmp, handshake);
                     }
                 }
                 break;
@@ -199,6 +192,45 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                 break;
             default:
                 throw new IllegalStateException("Invalid RTMP state: " + connectionState);
+        }
+    }
+
+    /**
+     * Provides connection completion.
+     * 
+     * @param nextFilter
+     * @param session
+     * @param buf
+     * @param conn
+     * @param rtmp
+     * @param handshake
+     */
+    private void completeConnection(NextFilter nextFilter, IoSession session, IoBuffer buf, RTMPMinaConnection conn, RTMP rtmp, OutboundHandshake handshake) {
+        if (handshake.useEncryption()) {
+            // set encryption flag the rtmp state
+            rtmp.setEncrypted(true);
+            // add the ciphers
+            log.debug("Adding ciphers to the session");
+            session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
+            session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
+        }
+        // set state to indicate we're connected
+        conn.getState().setState(RTMP.STATE_CONNECTED);
+        log.debug("Connected, removing handshake data");
+        // remove handshake from session now that we are connected
+        session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+        // add protocol filter as the last one in the chain
+        log.debug("Adding RTMP protocol filter");
+        session.getFilterChain().addAfter("rtmpeFilter", "protocolFilter", new ProtocolCodecFilter(new RTMPMinaCodecFactory()));
+        // flag to indicate that we're ready to be an opened rtmp client
+        session.setAttribute(OutboundHandshake.RTMP_HANDSHAKE_COMPLETED, null);
+        if (buf.remaining() > 0) {
+            log.trace("Remaining: {}", buf.remaining());
+            // nothing to send to the server after we receive s2
+            nextFilter.messageReceived(session, buf);
+        } else {
+            buf.free();
+            nextFilter.messageReceived(session, null);
         }
     }
 
