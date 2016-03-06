@@ -336,10 +336,10 @@ public class OutboundHandshake extends RTMPHandshake {
             log.debug("Signature calculated: {}", Hex.encodeHexString(signature));
             log.debug("Server sent signature: {}", Hex.encodeHexString(s2));
             if (!Arrays.equals(signature, Arrays.copyOfRange(s2, (Constants.HANDSHAKE_SIZE - DIGEST_LENGTH), (Constants.HANDSHAKE_SIZE - DIGEST_LENGTH) + DIGEST_LENGTH))) {
-                log.info("Server not genuine Adobe");
+                log.info("Server not genuine");
                 return false;
             } else {
-                log.debug("Genuine Adobe server");
+                log.debug("Compatible flash server");
             }
         } else {
             if (!Arrays.equals(s2, c1)) {

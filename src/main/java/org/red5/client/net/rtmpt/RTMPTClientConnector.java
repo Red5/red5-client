@@ -189,7 +189,7 @@ class RTMPTClientConnector extends Thread {
             // add the handshake
             conn.setAttribute(RTMPConnection.RTMP_HANDSHAKE, outgoingHandshake);
             log.debug("Handshake 1st phase");
-            IoBuffer handshake = outgoingHandshake.doHandshake(null);
+            IoBuffer handshake = outgoingHandshake.generateClientRequest1();
             conn.writeRaw(handshake);
         }
         return conn;
