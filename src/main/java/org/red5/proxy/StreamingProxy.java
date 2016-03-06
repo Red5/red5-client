@@ -212,12 +212,20 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 
     public void setConnectionClosedHandler(Runnable connectionClosedHandler) {
         log.debug("setConnectionClosedHandler: {}", connectionClosedHandler);
-        rtmpClient.setConnectionClosedHandler(connectionClosedHandler);
+        if (rtmpClient != null) {
+            rtmpClient.setConnectionClosedHandler(connectionClosedHandler);
+        } else {
+            log.warn("Internal client is null, ensure that init() is called before adding handlers");
+        }
     }
 
     public void setExceptionHandler(ClientExceptionHandler exceptionHandler) {
         log.debug("setExceptionHandler: {}", exceptionHandler);
-        rtmpClient.setExceptionHandler(exceptionHandler);
+        if (rtmpClient != null) {
+            rtmpClient.setExceptionHandler(exceptionHandler);
+        } else {
+            log.warn("Internal client is null, ensure that init() is called before adding handlers");
+        }
     }
 
     public boolean isPublished() {

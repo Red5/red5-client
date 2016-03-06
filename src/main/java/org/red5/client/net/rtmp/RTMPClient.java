@@ -93,6 +93,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
     }
 
     /** {@inheritDoc} */
+    @SuppressWarnings("deprecation")
     @Override
     public void disconnect() {
         if (future != null) {

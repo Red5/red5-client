@@ -109,6 +109,7 @@ public class RTMPSMinaIoHandler extends RTMPMinaIoHandler {
     }
 
     /** {@inheritDoc} */
+    @SuppressWarnings("deprecation")
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
         log.warn("Exception caught {}", cause.getMessage());

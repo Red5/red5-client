@@ -1,16 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.red5</groupId>
         <artifactId>red5-parent</artifactId>
+<<<<<<< HEAD
         <version>1.0.7-SNAPSHOT</version>
+=======
+        <version>1.0.7-M6</version>
+>>>>>>> red5/master
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>red5-client</artifactId>
     <name>Red5 :: Client</name>
     <description>The Red5 client</description>
+<<<<<<< HEAD
     <packaging>jar</packaging>
+=======
+>>>>>>> red5/master
     <url>https://github.com/Red5/red5-client</url>
     <organization>
         <name>Red5</name>
@@ -57,9 +63,12 @@
             <email>tiago.jacobs@gmail.com</email>
         </developer>
     </developers>
+<<<<<<< HEAD
     <properties>
         <red5-common.version>${project.version}</red5-common.version>
     </properties>
+=======
+>>>>>>> red5/master
     <repositories>
         <repository>
             <id>sonatype-snapshots</id>
@@ -117,7 +126,6 @@
                 <artifactId>maven-jar-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
             </plugin>
             <plugin>
@@ -130,6 +138,24 @@
             </plugin>
         </plugins>
     </build>
+<<<<<<< HEAD
+=======
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.red5</groupId>
+                <artifactId>red5-server-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+>>>>>>> red5/master
     <dependencies>
         <dependency>
             <groupId>org.red5</groupId>
