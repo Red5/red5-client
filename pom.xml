@@ -3,21 +3,15 @@
     <parent>
         <groupId>org.red5</groupId>
         <artifactId>red5-parent</artifactId>
-<<<<<<< HEAD
-        <version>1.0.7-SNAPSHOT</version>
-=======
         <version>1.0.7-M6</version>
->>>>>>> red5/master
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>red5-client</artifactId>
+    <packaging>jar</packaging>
     <name>Red5 :: Client</name>
     <description>The Red5 client</description>
-<<<<<<< HEAD
-    <packaging>jar</packaging>
-=======
->>>>>>> red5/master
     <url>https://github.com/Red5/red5-client</url>
+    <inceptionYear>2005</inceptionYear>
     <organization>
         <name>Red5</name>
         <url>https://github.com/Red5</url>
@@ -63,12 +57,6 @@
             <email>tiago.jacobs@gmail.com</email>
         </developer>
     </developers>
-<<<<<<< HEAD
-    <properties>
-        <red5-common.version>${project.version}</red5-common.version>
-    </properties>
-=======
->>>>>>> red5/master
     <repositories>
         <repository>
             <id>sonatype-snapshots</id>
@@ -124,6 +112,16 @@
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <SCM-Revision>${buildNumber}</SCM-Revision>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
@@ -135,11 +133,15 @@
             </plugin>
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-<<<<<<< HEAD
-=======
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -155,18 +157,14 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
->>>>>>> red5/master
     <dependencies>
         <dependency>
             <groupId>org.red5</groupId>
             <artifactId>red5-server-common</artifactId>
-            <version>${red5-common.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
