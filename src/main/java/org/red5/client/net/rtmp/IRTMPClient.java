@@ -36,15 +36,15 @@ public interface IRTMPClient {
 
 	public void createStream(IPendingServiceCallback callback);
 
-	public void publish(int streamId, String name, String mode, INetStreamEventHandler handler);
+	public void publish(Number streamId, String name, String mode, INetStreamEventHandler handler);
 
-	public void unpublish(int streamId);
+	public void unpublish(Number streamId);
 
-	public void publishStreamData(int streamId, IMessage message);
+	public void publishStreamData(Number streamId, IMessage message);
 
-	public void play(int streamId, String name, int start, int length);
+	public void play(Number streamId, String name, int start, int length);
 
-	public void play2(int streamId, Map<String, ?> playOptions);
+	public void play2(Number streamId, Map<String, ?> playOptions);
 
 	public IClientSharedObject getSharedObject(String name, boolean persistent);
 

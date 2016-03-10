@@ -22,9 +22,7 @@ public class ClientTest extends RTMPClient {
 
     private int port = 1935;
 
-    private String application = "oflaDemo";
-
-    //private String application = "live";
+    private String application = "oflaDemo";// "live";
 
     private String filename = "Avengers2.mp4";
 
@@ -45,13 +43,9 @@ public class ClientTest extends RTMPClient {
         //player.setLive(true);
         // connect
         player.connect();
-
-        synchronized (ClientTest.class) {
-            if (!finished) {
-                ClientTest.class.wait();
-            }
-        }
-
+        do {
+            Thread.sleep(1000L);
+        } while (!finished);
         System.out.println("Ended");
     }
 
@@ -80,21 +74,6 @@ public class ClientTest extends RTMPClient {
         }
     };
 
-    public void getFlvList() {
-        invoke("demoService.getListOfAvailableFLVs", new Object[] {}, methodCallCallback);
-    }
-
-    public void test() {
-        new Thread() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 100; ++i) {
-                    getFlvList();
-                }
-            }
-        }.start();
-    }
-
     private IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("connectCallback");
@@ -104,12 +83,9 @@ public class ClientTest extends RTMPClient {
             if ("NetConnection.Connect.Rejected".equals(code)) {
                 System.out.printf("Rejected: %s\n", map.get("description"));
                 disconnect();
-                synchronized (ClientTest.class) {
-                    finished = true;
-                    ClientTest.class.notifyAll();
-                }
+                finished = true;
             } else if ("NetConnection.Connect.Success".equals(code)) {
-                test();
+                invoke("demoService.getListOfAvailableFLVs", new Object[] {}, methodCallCallback);
                 createStream(createStreamCallback);
             }
         }
@@ -117,7 +93,7 @@ public class ClientTest extends RTMPClient {
 
     private IPendingServiceCallback createStreamCallback = new IPendingServiceCallback() {
         public void resultReceived(IPendingServiceCall call) {
-            int streamId = (Integer) call.getResult();
+            Number streamId = (Number) call.getResult();
             /*
              NetStream.play(name, start, length, reset)
              - start An optional numeric parameter that specifies the start time, in seconds. This parameter can also be used to indicate whether the stream is live or recorded.
@@ -159,17 +135,13 @@ public class ClientTest extends RTMPClient {
     @SuppressWarnings("unchecked")
     protected void onCommand(RTMPConnection conn, Channel channel, Header header, Notify notify) {
         super.onCommand(conn, channel, header, notify);
-        System.out.println("onInvoke, header = " + header.toString());
-        System.out.println("onInvoke, notify = " + notify.toString());
+        System.out.println("onInvoke - header: " + header.toString() + " notify: " + notify.toString());
         Object obj = notify.getCall().getArguments().length > 0 ? notify.getCall().getArguments()[0] : null;
         if (obj instanceof Map) {
             Map<String, String> map = (Map<String, String>) obj;
             String code = map.get("code");
             if (StatusCodes.NS_PLAY_STOP.equals(code)) {
-                synchronized (ClientTest.class) {
-                    finished = true;
-                    ClientTest.class.notifyAll();
-                }
+                finished = true;
                 disconnect();
                 System.out.println("Disconnected");
             }
