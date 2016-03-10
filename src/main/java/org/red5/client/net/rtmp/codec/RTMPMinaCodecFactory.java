@@ -35,14 +35,25 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
                 log.trace("Session id: {}", sessionId);
                 RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
                 Red5.setConnectionLocal(conn);
+                byte[] arr = new byte[in.remaining()];
+                in.get(arr);
+                // create a buffer and store it on the session
+                IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
+                if (buf == null) {
+                    buf = IoBuffer.allocate(arr.length);
+                    buf.setAutoExpand(true);
+                    session.setAttribute("buffer", buf);
+                }
+                // copy incoming into buffer
+                buf.put(arr);
+                // flip so we can read
+                buf.flip();
                 final Semaphore lock = conn.getDecoderLock();
                 try {
                     // acquire the decoder lock
-                    log.trace("Decoder lock acquiring.. {}", sessionId);
                     lock.acquire();
-                    log.trace("Decoder lock acquired {}", sessionId);
-                    // construct any objects from the decoded bugger
-                    List<?> objects = getDecoder().decodeBuffer(conn, in);
+                    // construct any objects from the decoded buffer
+                    List<?> objects = getDecoder().decodeBuffer(conn, buf);
                     log.trace("Decoded: {}", objects);
                     if (objects != null) {
                         for (Object object : objects) {
@@ -54,7 +65,6 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
                 } catch (Exception e) {
                     log.error("Error during decode", e);
                 } finally {
-                    log.trace("Decoder lock releasing.. {}", sessionId);
                     lock.release();
                     Red5.setConnectionLocal(null);
                 }
@@ -73,10 +83,8 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
                     Red5.setConnectionLocal(conn);
                     final Semaphore lock = conn.getEncoderLock();
                     try {
-                        // acquire the decoder lock
-                        log.trace("Encoder lock acquiring.. {}", sessionId);
+                        // acquire the encoder lock
                         lock.acquire();
-                        log.trace("Encoder lock acquired {}", sessionId);
                         // get the buffer
                         final IoBuffer buf = message instanceof IoBuffer ? (IoBuffer) message : getEncoder().encode(message);
                         if (buf != null) {
@@ -90,7 +98,6 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
                     } catch (Exception ex) {
                         log.error("Exception during encode", ex);
                     } finally {
-                        log.trace("Encoder lock releasing.. {}", sessionId);
                         lock.release();
                         Red5.setConnectionLocal(null);
                     }

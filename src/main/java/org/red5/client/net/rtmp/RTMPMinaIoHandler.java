@@ -38,6 +38,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 
     private static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class);
 
+    private boolean enableSwfVerification;
+
     /**
      * RTMP events handler
      */
@@ -60,10 +62,12 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         // add the handshake
         session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, outgoingHandshake);
         // setup swf verification
-        String swfUrl = (String) handler.getConnectionParams().get("swfUrl");
-        log.debug("SwfUrl: {}", swfUrl);
-        if (!StringUtils.isEmpty(swfUrl)) {
-            outgoingHandshake.initSwfVerification(swfUrl);
+        if (enableSwfVerification) {
+            String swfUrl = (String) handler.getConnectionParams().get("swfUrl");
+            log.debug("SwfUrl: {}", swfUrl);
+            if (!StringUtils.isEmpty(swfUrl)) {
+                outgoingHandshake.initSwfVerification(swfUrl);
+            }
         }
         //if handler is rtmpe client set encryption on the protocol state
         //if (handler instanceof RTMPEClient) {
@@ -71,6 +75,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         //set the handshake type to encrypted as well
         //outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_ENCRYPTED);
         //}
+        // set a reference to the handler on the sesssion
+        session.setAttribute(RTMPConnection.RTMP_HANDLER, handler);
         // set a reference to the connection on the client
         handler.setConnection((RTMPConnection) conn);
     }
@@ -84,7 +90,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
         // create and send C0+C1
         IoBuffer clientRequest1 = ((OutboundHandshake) handshake).generateClientRequest1();
-        log.trace("C0C1 byte order: {}", clientRequest1.order());
         session.write(clientRequest1);
     }
 
@@ -101,6 +106,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
                 // fire-off closed event
                 handler.connectionClosed(conn);
                 // clear any session attributes we may have previously set
+                session.removeAttribute(RTMPConnection.RTMP_HANDLER);
                 session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
                 session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
                 session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
@@ -116,17 +122,13 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
     @Override
     public void messageReceived(IoSession session, Object message) throws Exception {
         log.debug("messageReceived");
-        String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
-        log.trace("Session id: {}", sessionId);
-        RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
-        if (message instanceof IoBuffer) {
-            if (log.isDebugEnabled()) {
-                log.debug("rawBufferRecieved: {}", Hex.encodeHexString(((IoBuffer) message).array()));
-            }
+        if (message instanceof Packet && message != null) {
+            String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+            log.trace("Session id: {}", sessionId);
+            RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+            conn.handleMessageReceived((Packet) message);
         } else {
-            if (message != null) {
-                conn.handleMessageReceived((Packet) message);
-            }
+            log.debug("Not packet type: {}", message);
         }
     }
 
@@ -134,19 +136,13 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
     @Override
     public void messageSent(IoSession session, Object message) throws Exception {
         log.debug("messageSent");
-        String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
-        log.trace("Session id: {}", sessionId);
-        if (message instanceof IoBuffer) {
-            log.trace("messageSent: {}", Hex.encodeHexString(((IoBuffer) message).array()));
-            // when handshaking is complete, the attribute will be removed and at that point we start RTMP communication
-            // check and remove flag
-            if (session.removeAttribute(OutboundHandshake.RTMP_HANDSHAKE_COMPLETED) != null) {
-                RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
-                handler.connectionOpened(conn);
-            }
-        } else {
+        if (message instanceof Packet) {
+            String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+            log.trace("Session id: {}", sessionId);
             RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
             handler.messageSent(conn, (Packet) message);
+        } else {
+            log.trace("messageSent: {}", Hex.encodeHexString(((IoBuffer) message).array()));
         }
     }
 
@@ -167,6 +163,15 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
     public void setHandler(BaseRTMPClientHandler handler) {
         log.debug("Set handler: {}", handler);
         this.handler = handler;
+    }
+
+    /**
+     * Setter to enable swf verification in the handshake.
+     * 
+     * @param enableSwfVerification
+     */
+    public void setEnableSwfVerification(boolean enableSwfVerification) {
+        this.enableSwfVerification = enableSwfVerification;
     }
 
     protected RTMPMinaConnection createRTMPMinaConnection() {

@@ -101,12 +101,12 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Shared objects map
      */
-    private volatile ConcurrentMap<String, ClientSharedObject> sharedObjects = new ConcurrentHashMap<String, ClientSharedObject>(1, 0.9f, 1);
+    private volatile ConcurrentMap<String, ClientSharedObject> sharedObjects = new ConcurrentHashMap<>(1, 0.9f, 1);
 
     /**
      * Net stream handling
      */
-    private volatile ConcurrentMap<Integer, NetStreamPrivateData> streamDataMap = new ConcurrentHashMap<Integer, NetStreamPrivateData>(3, 0.75f, 1);
+    private volatile ConcurrentMap<Number, NetStreamPrivateData> streamDataMap = new ConcurrentHashMap<>(3, 0.75f, 1);
 
     /**
      * Task to start on connection close
@@ -557,7 +557,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         invoke("FCSubscribe", params, wrapper);
     }
 
-    public void publish(int streamId, String name, String mode, INetStreamEventHandler handler) {
+    public void publish(Number streamId, String name, String mode, INetStreamEventHandler handler) {
         log.debug("publish - stream id: {}, name: {}, mode: {}", new Object[] { streamId, name, mode });
         // setup the netstream handler
         if (handler != null) {
@@ -578,13 +578,13 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         conn.invoke(pendingCall, getChannelForStreamId(streamId));
     }
 
-    public void unpublish(int streamId) {
+    public void unpublish(Number streamId) {
         log.debug("unpublish stream {}", streamId);
         PendingCall pendingCall = new PendingCall("publish", new Object[] { false });
         conn.invoke(pendingCall, getChannelForStreamId(streamId));
     }
 
-    public void publishStreamData(int streamId, IMessage message) {
+    public void publishStreamData(Number streamId, IMessage message) {
         NetStreamPrivateData streamData = streamDataMap.get(streamId);
         log.debug("publishStreamData - stream data map: {}", streamDataMap);
         if (streamData != null) {
@@ -598,7 +598,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         }
     }
 
-    public void play(int streamId, String name, int start, int length) {
+    public void play(Number streamId, String name, int start, int length) {
         log.debug("play stream {}, name: {}, start {}, length {}", new Object[] { streamId, name, start, length });
         if (conn != null) {
             // get the channel
@@ -659,7 +659,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @see <a
      *      href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
      */
-    public void play2(int streamId, Map<String, ?> playOptions) {
+    public void play2(Number streamId, Map<String, ?> playOptions) {
         log.debug("play2 options: {}", playOptions.toString());
         /* { streamName=streams/new.flv,
             oldStreamName=streams/old.flv, 
@@ -705,7 +705,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param param
      *            ping parameter
      */
-    public void ping(short pingType, int streamId, int param) {
+    public void ping(short pingType, Number streamId, int param) {
         conn.ping(new Ping(pingType, streamId, param));
     }
 
@@ -852,8 +852,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param streamId
      * @return the channel for this stream id
      */
-    protected int getChannelForStreamId(int streamId) {
-        return (streamId - 1) * 5 + 4;
+    protected int getChannelForStreamId(Number streamId) {
+        return (streamId.intValue() - 1) * 5 + 4;
     }
 
     /**
@@ -987,19 +987,19 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         }
 
         public void resultReceived(IPendingServiceCall call) {
-            Integer streamIdInt = (Integer) call.getResult();
-            log.debug("CreateStreamCallBack resultReceived - stream id: {} call: {}", streamIdInt, call);
+            Number streamId = (Number) call.getResult();
+            log.debug("CreateStreamCallBack resultReceived - stream id: {} call: {}", streamId, call);
             log.debug("Connection: {}", conn);
-            if (conn != null && streamIdInt != null) {
+            if (conn != null && streamId != null) {
                 log.debug("Setting new net stream");
                 NetStream stream = new NetStream(streamEventDispatcher);
                 stream.setConnection(conn);
-                stream.setStreamId(streamIdInt);
+                stream.setStreamId(streamId);
                 conn.addClientStream(stream);
                 NetStreamPrivateData streamData = new NetStreamPrivateData();
-                streamData.outputStream = conn.createOutputStream(streamIdInt);
+                streamData.outputStream = conn.createOutputStream(streamId);
                 streamData.connConsumer = new ConnectionConsumer(conn, streamData.outputStream.getVideo(), streamData.outputStream.getAudio(), streamData.outputStream.getData());
-                streamDataMap.put(streamIdInt, streamData);
+                streamDataMap.put(streamId, streamData);
                 log.debug("streamDataMap: {}", streamDataMap);
             }
             wrapped.resultReceived(call);
@@ -1030,17 +1030,17 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         }
 
         public void resultReceived(IPendingServiceCall call) {
-            Integer streamIdInt = (Integer) call.getResult();
-            log.debug("Stream id: {}", streamIdInt);
+            Number streamId = (Number) call.getResult();
+            log.debug("Stream id: {}", streamId);
             log.debug("Connection: {}", conn);
-            log.debug("DeleteStreamCallBack resultReceived - stream id: {}", streamIdInt);
-            if (conn != null && streamIdInt != null) {
+            log.debug("DeleteStreamCallBack resultReceived - stream id: {}", streamId);
+            if (conn != null && streamId != null) {
                 log.debug("Deleting net stream");
-                conn.removeClientStream(streamIdInt);
+                conn.removeClientStream(streamId);
                 // send a delete notify?
-                //NetStreamPrivateData streamData = streamDataMap.get(streamIdInt);
+                //NetStreamPrivateData streamData = streamDataMap.get(streamId);
                 //streamData.handler.onStreamEvent(notify)
-                streamDataMap.remove(streamIdInt);
+                streamDataMap.remove(streamId);
             }
             wrapped.resultReceived(call);
         }

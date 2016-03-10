@@ -90,6 +90,7 @@ public class YouTubeConnectTest {
                         public void resultReceived(IPendingServiceCall call) {
                             int streamId = (Integer) call.getResult();
                             // live buffer 0.5s
+                            @SuppressWarnings("unused")
                             RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
                             //conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 500));
                             //client.play(streamId, youtubePublishName, -1, -1);
@@ -158,6 +159,7 @@ public class YouTubeConnectTest {
                         public void resultReceived(IPendingServiceCall call) {
                             int streamId = (Integer) call.getResult();
                             // live buffer 0.5s
+                            @SuppressWarnings("unused")
                             RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
                             //conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 500));
                             //client.play(streamId, youtubePublishName, -1, -1);

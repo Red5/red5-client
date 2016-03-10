@@ -20,6 +20,7 @@ package org.red5.client.net.rtmp;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.util.Arrays;
 
@@ -38,8 +39,6 @@ import org.slf4j.LoggerFactory;
  * @author Paul Gregoire
  */
 public class OutboundHandshake extends RTMPHandshake {
-
-    public final static Boolean RTMP_HANDSHAKE_COMPLETED = Boolean.TRUE;
 
     private byte[] outgoingDigest = new byte[DIGEST_LENGTH];
 
@@ -84,6 +83,15 @@ public class OutboundHandshake extends RTMPHandshake {
         log.trace("createHandshakeBytes");
         BigInteger bi = new BigInteger((Constants.HANDSHAKE_SIZE * 8), random);
         handshakeBytes = BigIntegers.asUnsignedByteArray(bi);
+        // prevent AOOB error that can occur, sometimes
+        if (handshakeBytes.length < Constants.HANDSHAKE_SIZE) {
+            // resize the handshake bytes
+            ByteBuffer b = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
+            b.put(handshakeBytes);
+            b.put((byte) 0x13);
+            b.flip();
+            handshakeBytes = b.array();
+        }
     }
 
     /**
