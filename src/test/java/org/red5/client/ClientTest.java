@@ -18,16 +18,16 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 
 public class ClientTest extends RTMPClient {
 
-    private String server = "localhost";
+    private String server = "127.0.0.1";
 
     private int port = 1935;
 
-    private String application = "oflaDemo";// "live";
+    private String application = "live"; //oflaDemo
 
-    private String filename = "Avengers2.mp4";
+    private String filename = "test1"; //"Avengers2.mp4";
 
     // live stream (true) or vod stream (false)
-    private boolean live;
+    private boolean live = true;
 
     private static boolean finished = false;
 
