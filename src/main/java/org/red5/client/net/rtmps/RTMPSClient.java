@@ -79,16 +79,9 @@ public class RTMPSClient extends RTMPClient {
 
     /** Constructs a new RTMPClient. */
     public RTMPSClient() {
+        protocol = "rtmps";
         ioHandler = new RTMPSClientIoHandler();
         ioHandler.setHandler(this);
-    }
-
-    public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
-        Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
-        if (!params.containsKey("tcUrl")) {
-            params.put("tcUrl", String.format("rtmps://%s:%s/%s", server, port, application));
-        }
-        return params;
     }
 
     @SuppressWarnings({ "rawtypes" })
