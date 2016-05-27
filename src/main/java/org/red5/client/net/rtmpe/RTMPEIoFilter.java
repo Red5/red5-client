@@ -20,7 +20,6 @@ package org.red5.client.net.rtmpe;
 
 import javax.crypto.Cipher;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
@@ -53,6 +52,9 @@ public class RTMPEIoFilter extends IoFilterAdapter {
         String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
         log.trace("Session id: {}", sessionId);
         RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+        if (conn == null) {
+            throw new Exception("Receive on unavailable connection - session id: " + sessionId);
+        }
         if (log.isTraceEnabled()) {
             log.trace("Bytes read: {} written: {}", conn.getReadBytes(), conn.getWrittenBytes());
         }
@@ -90,44 +92,42 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                 }
                 break;
             case RTMP.STATE_CONNECT:
-                // we're expecting S0+S1 here
-                // get the handshake from the session
+                // get the handshake from the session and process S0+S1 if we have enough bytes
                 handshake = (OutboundHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-                int handshakeType = handshake.getHandshakeType();
-                if (handshakeType == 0) {
-                    log.trace("Handshake type is not currently set");
-                    // holds the handshake type, default is un-encrypted
-                    byte handshakeByte = RTMPConnection.RTMP_NON_ENCRYPTED;
-                    message.mark();
-                    handshakeByte = message.get();
-                    message.reset();
-                    // set the type
-                    handshake.setHandshakeType(handshakeByte);
-                    // set encryption flag the rtmp state
-                    rtmp.setEncrypted(handshake.useEncryption());
-                }
-                log.debug("decodeHandshakeS0S1 - buffer: {}", message);
+                // copy into the handshake buffer
+                handshake.addBuffer(message);
                 // we want 1537 bytes for S0S1
-                int s0s1Size = message.remaining();
+                int s0s1Size = handshake.getBufferSize();
                 log.trace("Incoming S0S1 size: {}", s0s1Size);
                 if (s0s1Size >= (Constants.HANDSHAKE_SIZE + 1)) {
+                    log.debug("decodeHandshakeS0S1");
+                    // check the initial handshake type
+                    int handshakeType = handshake.getHandshakeType();
+                    if (handshakeType == 0) {
+                        log.trace("Handshake type is not currently set");
+                        // set the type, default is un-encrypted
+                        handshake.setHandshakeType(RTMPConnection.RTMP_NON_ENCRYPTED);
+                        // set encryption flag the rtmp state
+                        rtmp.setEncrypted(handshake.useEncryption());
+                    }
+                    // get the buffered bytes
+                    IoBuffer buf = handshake.getBufferAsIoBuffer();
                     // get the connection type byte, may want to set this on the conn in the future
-                    byte connectionType = message.get();
+                    byte connectionType = buf.get();
                     log.trace("Incoming S0 connection type: {}", connectionType);
-                    // TODO ensure handshake types match
                     if (handshake.getHandshakeType() != connectionType) {
                         log.debug("Server requested handshake type: {} client requested: {}", connectionType, handshake.getHandshakeType());
                     }
                     // create array for decode
                     byte[] dst = new byte[Constants.HANDSHAKE_SIZE];
                     // copy out 1536 bytes
-                    message.get(dst);
-                    log.debug("S1 - buffer: {}", Hex.encodeHexString(dst));
+                    buf.get(dst);
+                    //log.debug("S1 - buffer: {}", Hex.encodeHexString(dst));
                     // buffer any extra bytes
-                    int remaining = message.remaining();
+                    int remaining = buf.remaining();
                     if (remaining > 0) {
-                        // store the remaining bytes in a thread local for use by C2 decoding
-                        handshake.addBuffer(message);
+                        // store the remaining bytes in a thread local for use by S2 decoding
+                        handshake.addBuffer(buf);
                         log.trace("Stored {} bytes for later decoding", remaining);
                     }
                     IoBuffer c2 = handshake.decodeServerResponse1(IoBuffer.wrap(dst));
@@ -138,7 +138,10 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                         session.write(c2);
                         // if we got S0S1+S2 continue processing
                         if (handshake.getBufferSize() >= Constants.HANDSHAKE_SIZE) {
-                            IoBuffer buf = handshake.getBufferAsIoBuffer();
+                            // clear
+                            buf.clear();
+                            // re-set
+                            buf = handshake.getBufferAsIoBuffer();
                             if (handshake.decodeServerResponse2(buf)) {
                                 log.debug("S2 decoding successful");
                             } else {
@@ -152,8 +155,7 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                 }
                 break;
             case RTMP.STATE_HANDSHAKE:
-                // we're expecting S2 here
-                // get the handshake from the session
+                // get the handshake from the session and process S2 if we have enough bytes
                 handshake = (OutboundHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
                 log.debug("decodeHandshakeS2 - buffer: {}", message);
                 // buffer the incoming message

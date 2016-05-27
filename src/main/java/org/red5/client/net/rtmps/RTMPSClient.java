@@ -31,7 +31,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
-import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -79,16 +78,9 @@ public class RTMPSClient extends RTMPClient {
 
     /** Constructs a new RTMPClient. */
     public RTMPSClient() {
+        protocol = "rtmps";
         ioHandler = new RTMPSClientIoHandler();
         ioHandler.setHandler(this);
-    }
-
-    public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
-        Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
-        if (!params.containsKey("tcUrl")) {
-            params.put("tcUrl", String.format("rtmps://%s:%s/%s", server, port, application));
-        }
-        return params;
     }
 
     @SuppressWarnings({ "rawtypes" })
