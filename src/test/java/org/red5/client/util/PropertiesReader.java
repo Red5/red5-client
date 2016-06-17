@@ -27,7 +27,7 @@ public class PropertiesReader {
                 log.info("No test.properties file found, using defaults");
                 props.setProperty("server", "localhost");
                 props.setProperty("port", "1935");
-                props.setProperty("app", "live");
+                props.setProperty("app", "oflaDemo");
                 props.setProperty("name", "Avengers2.mp4");
             }
         } catch (IOException e) {
