@@ -56,11 +56,13 @@ public class RTMPSClient extends RTMPClient {
     /**
      * Password for accessing the keystore.
      */
+    @SuppressWarnings("unused")
     private char[] password;
 
     /**
      * The keystore type, valid options are JKS and PKCS12
      */
+    @SuppressWarnings("unused")
     private String keyStoreType = "JKS";
 
     /** Constructs a new RTMPClient. */
