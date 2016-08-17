@@ -71,7 +71,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 
     private String publishName;
 
-    private int streamId;
+    private Number streamId;
 
     private String publishMode;
 
@@ -182,8 +182,8 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
         } else if ("createStream".equals(method)) {
             setState(StreamState.PUBLISHING);
             Object result = call.getResult();
-            if (result instanceof Integer) {
-                streamId = ((Integer) result).intValue();
+            if (result instanceof Number) {
+                streamId = (Number) result;
                 log.debug("Publishing: {}", state);
                 rtmpClient.publish(streamId, publishName, publishMode, this);
             } else {

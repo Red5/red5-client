@@ -778,9 +778,16 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
                 NetStreamPrivateData streamData = streamDataMap.get(streamId);
                 // if null return the first one in the map
                 if (streamData == null) {
-                    log.debug("Stream data was not found by id. Map contents: {}", streamDataMap);
                     if (!streamDataMap.isEmpty()) {
-                        streamData = streamDataMap.values().iterator().next();
+                        if (log.isDebugEnabled()) {
+                            log.debug("Stream data was not found by id. Map contents: {}", streamDataMap);
+                        }
+                        if (streamId instanceof Integer) {
+                            streamData = streamDataMap.get(streamId.intValue() * 1.0d);
+                        } else {
+                            // just pass back the first item
+                            streamData = streamDataMap.values().iterator().next();
+                        }
                     }
                 }
                 if (streamData == null) {

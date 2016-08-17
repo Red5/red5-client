@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.red5.client.net.rtmp.ClientExceptionHandler;
 import org.red5.client.net.rtmpt.RTMPTClient;
+import org.red5.client.util.PropertiesReader;
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
@@ -17,21 +18,6 @@ import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.status.StatusCodes;
 
 public class RTMPTClientTest extends RTMPTClient {
-
-    // server host name
-    private String server = "localhost";
-
-    // server port
-    private int port = 5080;
-
-    // application or context
-    private String application = "oflaDemo";
-
-    // file or stream identifier
-    private String filename = "Avengers2.mp4";
-
-    // live stream (true) or vod stream (false)
-    private boolean live;
 
     private static boolean finished = false;
 
@@ -60,7 +46,7 @@ public class RTMPTClientTest extends RTMPTClient {
             }
         });
         setStreamEventDispatcher(streamEventDispatcher);
-        connect(server, port, application, connectCallback);
+        connect(PropertiesReader.getProperty("rtmpt.server"), Integer.valueOf(PropertiesReader.getProperty("rtmpt.port")), PropertiesReader.getProperty("rtmpt.app"), connectCallback);
     }
 
     private IEventDispatcher streamEventDispatcher = new IEventDispatcher() {
@@ -152,12 +138,12 @@ public class RTMPTClientTest extends RTMPTClient {
             	(the default behavior).
              */
             // live buffer 0.5s / vod buffer 4s
-            if (live) {
+            if (Boolean.valueOf(PropertiesReader.getProperty("rtmpt.live"))) {
                 conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 500));
-                play(streamId, filename, -1, -1);
+                play(streamId, PropertiesReader.getProperty("rtmpt.name"), -1, -1);
             } else {
                 conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 4000));
-                play(streamId, filename, 0, -1);
+                play(streamId, PropertiesReader.getProperty("rtmpt.name"), 0, -1);
             }
         }
     };
@@ -181,21 +167,6 @@ public class RTMPTClientTest extends RTMPTClient {
             }
         }
 
-    }
-
-    /**
-     * @return the live
-     */
-    public boolean isLive() {
-        return live;
-    }
-
-    /**
-     * @param live
-     *            the live to set
-     */
-    public void setLive(boolean live) {
-        this.live = live;
     }
 
 }
