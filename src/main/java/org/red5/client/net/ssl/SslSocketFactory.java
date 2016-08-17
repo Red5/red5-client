@@ -68,7 +68,7 @@ public class SslSocketFactory extends SocketFactory {
         return factory;
     }
 
-    private javax.net.ssl.SSLSocketFactory getSSLFactory() {
+    private static javax.net.ssl.SSLSocketFactory getSSLFactory() {
         if (sslFactory == null) {
             try {
                 sslFactory = BogusSslContextFactory.getInstance(false).getSocketFactory();

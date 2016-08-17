@@ -71,6 +71,7 @@ public class OutboundHandshake extends RTMPHandshake {
         this.algorithm = algorithm;
     }
 
+    @Override
     public IoBuffer doHandshake(IoBuffer input) {
         throw new UnsupportedOperationException("Not used, call server response decoders directly");
     }

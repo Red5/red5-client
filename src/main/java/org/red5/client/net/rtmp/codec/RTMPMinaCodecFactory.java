@@ -110,11 +110,13 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
     }
 
     /** {@inheritDoc} */
+    @Override
     public ProtocolDecoder getDecoder(IoSession session) {
         return clientDecoder;
     }
 
     /** {@inheritDoc} */
+    @Override
     public ProtocolEncoder getEncoder(IoSession session) {
         return clientEncoder;
     }

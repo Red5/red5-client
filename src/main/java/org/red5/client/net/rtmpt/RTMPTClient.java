@@ -53,6 +53,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
         codecFactory.init();
     }
 
+    @Override
     public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
         Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
         if (!params.containsKey("tcUrl")) {
@@ -61,6 +62,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
         return params;
     }
 
+    @Override
     protected synchronized void startConnector(String server, int port) {
         connector = new RTMPTClientConnector(server, port, this);
         log.debug("Created connector {}", connector);
@@ -146,6 +148,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
         }
     }
 
+    @Override
     public synchronized void disconnect() {
         if (connector != null) {
             connector.setStopRequested(true);

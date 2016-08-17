@@ -203,7 +203,7 @@ public class RTMPEIoFilter extends IoFilterAdapter {
      * @param rtmp
      * @param handshake
      */
-    private void completeConnection(IoSession session, RTMPMinaConnection conn, RTMP rtmp, OutboundHandshake handshake) {
+    private static void completeConnection(IoSession session, RTMPMinaConnection conn, RTMP rtmp, OutboundHandshake handshake) {
         if (handshake.useEncryption()) {
             // set encryption flag the rtmp state
             rtmp.setEncrypted(true);

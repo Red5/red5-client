@@ -96,6 +96,7 @@ public class StreamRelay {
             proxy.setApp(destApp);
             proxy.init();
             proxy.setConnectionClosedHandler(new Runnable() {
+                @Override
                 public void run() {
                     System.out.println("Publish connection has been closed, source will be disconnected");
                     client.disconnect();
@@ -123,6 +124,7 @@ public class StreamRelay {
             client = new RTMPClient();
             client.setStreamEventDispatcher(new StreamEventDispatcher());
             client.setStreamEventHandler(new INetStreamEventHandler() {
+                @Override
                 public void onStreamEvent(Notify notify) {
                     System.out.printf("onStreamEvent: %s\n", notify);
                     ObjectMap<?, ?> map = (ObjectMap<?, ?>) notify.getCall().getArguments()[0];
@@ -138,6 +140,7 @@ public class StreamRelay {
                 }
             });
             client.setConnectionClosedHandler(new Runnable() {
+                @Override
                 public void run() {
                     System.out.println("Source connection has been closed, proxy will be stopped");
                     proxy.stop();
@@ -159,6 +162,7 @@ public class StreamRelay {
             client.setSwfVerification(true);
             // connect the client
             client.connect(sourceHost, sourcePort, defParams, new IPendingServiceCallback() {
+                @Override
                 public void resultReceived(IPendingServiceCall call) {
                     System.out.println("connectCallback");
                     ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
@@ -195,6 +199,7 @@ public class StreamRelay {
      */
     private static final class StreamEventDispatcher implements IEventDispatcher {
 
+        @Override
         public void dispatchEvent(IEvent event) {
             System.out.println("ClientStream.dispachEvent()" + event.toString());
             try {
@@ -211,6 +216,7 @@ public class StreamRelay {
      */
     private static final class SubscribeStreamCallBack implements IPendingServiceCallback {
 
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("resultReceived: " + call);
         }
@@ -222,6 +228,7 @@ public class StreamRelay {
      */
     private static final class CreateStreamCallback implements IPendingServiceCallback {
 
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("resultReceived: " + call);
             int streamId = (Integer) call.getResult();

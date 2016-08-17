@@ -117,10 +117,12 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
         rtmpClient.createStream(this);
     }
 
+    @Override
     public void onPipeConnectionEvent(PipeConnectionEvent event) {
         log.debug("onPipeConnectionEvent: {}", event);
     }
 
+    @Override
     public void pushMessage(IPipe pipe, IMessage message) throws IOException {
         if (isPublished() && message instanceof RTMPMessage) {
             RTMPMessage rtmpMsg = (RTMPMessage) message;
@@ -131,6 +133,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
         }
     }
 
+    @Override
     public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
         log.debug("onOOBControlMessage: {}", oobCtrlMsg);
     }
@@ -155,6 +158,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
         this.app = app;
     }
 
+    @Override
     public void onStreamEvent(Notify notify) {
         log.debug("onStreamEvent: {}", notify);
         ObjectMap<?, ?> map = (ObjectMap<?, ?>) notify.getCall().getArguments()[0];
@@ -171,6 +175,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
         }
     }
 
+    @Override
     public void resultReceived(IPendingServiceCall call) {
         String method = call.getServiceMethodName();
         log.debug("resultReceived:> {}", method);

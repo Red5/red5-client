@@ -61,6 +61,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public RTMPConnection createConnection(Class<?> connCls) {
         RTMPConnection conn = null;
         if (RTMPConnection.class.isAssignableFrom(connCls)) {
@@ -79,6 +80,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public RTMPConnection createConnection(Class<?> connCls, String sessionId) {
         RTMPConnection conn = null;
         if (RTMPConnection.class.isAssignableFrom(connCls)) {
@@ -105,6 +107,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
      * 
      * @param conn
      */
+    @Override
     public void setConnection(RTMPConnection conn) {
         log.trace("Adding connection: {}", conn);
         int id = conn.getId();
@@ -121,6 +124,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
      * @param clientId
      * @return connection if found and null otherwise
      */
+    @Override
     public RTMPConnection getConnection(int clientId) {
         log.trace("Getting connection by client id: {}", clientId);
         for (RTMPConnection conn : connMap.values()) {
@@ -137,6 +141,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
      * @param sessionId
      * @return connection if found and null otherwise
      */
+    @Override
     public RTMPConnection getConnectionBySessionId(String sessionId) {
         log.debug("Getting connection by session id: {}", sessionId);
         if (connMap.containsKey(sessionId)) {
@@ -151,6 +156,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public RTMPConnection removeConnection(int clientId) {
         log.trace("Removing connection with id: {}", clientId);
         // remove from map
@@ -165,6 +171,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public RTMPConnection removeConnection(String sessionId) {
         log.debug("Removing connection with session id: {}", sessionId);
         if (log.isTraceEnabled()) {
@@ -180,6 +187,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Collection<RTMPConnection> getAllConnections() {
         ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
         list.addAll(connMap.values());
@@ -187,6 +195,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Collection<RTMPConnection> removeConnections() {
         ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
         list.addAll(connMap.values());

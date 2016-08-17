@@ -14,10 +14,11 @@ public class RTMPClientTest {
     public void test26() throws InterruptedException {
         final RTMPClient client = new RTMPClient();
         client.setConnectionClosedHandler(new Runnable() {
+            @Override
             public void run() {
                 System.out.println("Connection closed");
             }
-        });        
+        });
         client.setExceptionHandler(new ClientExceptionHandler() {
             @Override
             public void handleException(Throwable throwable) {
@@ -25,6 +26,7 @@ public class RTMPClientTest {
             }
         });
         Thread t = new Thread(new Runnable(){
+            @Override
             public void run() {
                 client.connect("localhost", 1935, "live/remote/0586e318-6277-11e3-adc2-22000a1d91fe", new IPendingServiceCallback() {
                     @Override
@@ -59,5 +61,4 @@ public class RTMPClientTest {
         t.join(60000L);
         Thread.sleep(1000L);
     }
-
 }

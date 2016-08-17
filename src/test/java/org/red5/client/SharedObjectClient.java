@@ -51,6 +51,7 @@ public class SharedObjectClient extends RTMPClient implements IPendingServiceCal
         this.connect(server, port, connectionParams, this, connectCallArguments);
     }
 
+    @Override
     public void resultReceived(IPendingServiceCall call) {
         log.debug("Received pending call: {}", call);
         Object result = call.getResult();
@@ -73,6 +74,7 @@ public class SharedObjectClient extends RTMPClient implements IPendingServiceCal
         return obj;
     }
 
+    @Override
     public void onSharedObjectUpdate(ISharedObjectBase so, String key, Object value) {
         log.debug("onSharedObjectUpdate - key: {} value: {}", key, value.toString());
 
