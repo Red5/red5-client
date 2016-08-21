@@ -82,6 +82,7 @@ class RTMPTClientConnector extends Thread {
         this.client = client;
     }
 
+    @Override
     public void run() {
         HttpPost post = null;
         try {
@@ -204,7 +205,7 @@ class RTMPTClientConnector extends Thread {
         EntityUtils.consume(response.getEntity());
     }
 
-    private HttpPost getPost(String uri) {
+    private static HttpPost getPost(String uri) {
         HttpPost post = new HttpPost(uri);
         post.setProtocolVersion(HttpVersion.HTTP_1_1);
         return post;
@@ -221,12 +222,12 @@ class RTMPTClientConnector extends Thread {
         return String.format("/%s/%s/%s", command, sessionId, messageCount++);
     }
 
-    private void setCommonHeaders(HttpPost post) {
+    private static void setCommonHeaders(HttpPost post) {
         post.addHeader("Connection", "Keep-Alive");
         post.addHeader("Cache-Control", "no-cache");
     }
 
-    private void checkResponseCode(HttpResponse response) throws ParseException, IOException {
+    private static void checkResponseCode(HttpResponse response) throws ParseException, IOException {
         int code = response.getStatusLine().getStatusCode();
         if (code != HttpStatus.SC_OK) {
             throw new RuntimeException("Bad HTTP status returned, line: " + response.getStatusLine() + "; body: " + EntityUtils.toString(response.getEntity()));

@@ -79,6 +79,7 @@ public class RTMPSClient extends RTMPClient {
         socketConnector.setHandler(ioHandler);
         future = socketConnector.connect(new InetSocketAddress(server, port));
         future.addListener(new IoFutureListener() {
+            @Override
             public void operationComplete(IoFuture future) {
                 try {
                     // will throw RuntimeException after connection error

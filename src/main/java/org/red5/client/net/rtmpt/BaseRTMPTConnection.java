@@ -73,6 +73,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
             return packet;
         }
 
+        @Override
         public String toString() {
             return getClass().getName() + "(buffer=" + buffer + "; packet=" + packet + ")";
         }
@@ -290,6 +291,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
         return result;
     }
 
+    @Override
     public void setHandler(IRTMPHandler handler) {
         this.handler = handler;
     }

@@ -68,6 +68,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
         Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
         if (!params.containsKey("tcUrl")) {
@@ -83,6 +84,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
         socketConnector.setHandler(ioHandler);
         future = socketConnector.connect(new InetSocketAddress(server, port));
         future.addListener(new IoFutureListener<ConnectFuture>() {
+            @Override
             public void operationComplete(ConnectFuture future) {
                 try {
                     // will throw RuntimeException after connection error

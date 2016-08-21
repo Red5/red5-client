@@ -52,6 +52,7 @@ public class YouTubeConnectTest {
 
         final RTMPClient client = new RTMPClient();
         client.setConnectionClosedHandler(new Runnable() {
+            @Override
             public void run() {
                 log.info("Test - exit");
             }
@@ -76,6 +77,7 @@ public class YouTubeConnectTest {
         };
         client.setStreamEventHandler(netStreamEventHandler);
         IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
+            @Override
             public void resultReceived(IPendingServiceCall call) {
                 log.info("connectCallback");
                 ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
@@ -87,6 +89,7 @@ public class YouTubeConnectTest {
                     finished.set(true);
                 } else if ("NetConnection.Connect.Success".equals(code)) {
                     client.createStream(new IPendingServiceCallback() {
+                        @Override
                         public void resultReceived(IPendingServiceCall call) {
                             int streamId = (Integer) call.getResult();
                             // live buffer 0.5s
@@ -121,6 +124,7 @@ public class YouTubeConnectTest {
         final String publishName = "test";
         final RTMPClient client = new RTMPClient();
         client.setConnectionClosedHandler(new Runnable() {
+            @Override
             public void run() {
                 log.info("Test - exit");
             }
@@ -145,6 +149,7 @@ public class YouTubeConnectTest {
         };
         client.setStreamEventHandler(netStreamEventHandler);
         IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
+            @Override
             public void resultReceived(IPendingServiceCall call) {
                 log.info("connectCallback");
                 ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
@@ -156,6 +161,7 @@ public class YouTubeConnectTest {
                     finished.set(true);
                 } else if ("NetConnection.Connect.Success".equals(code)) {
                     client.createStream(new IPendingServiceCallback() {
+                        @Override
                         public void resultReceived(IPendingServiceCall call) {
                             int streamId = (Integer) call.getResult();
                             // live buffer 0.5s

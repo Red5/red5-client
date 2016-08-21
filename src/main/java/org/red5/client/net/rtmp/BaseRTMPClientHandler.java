@@ -175,6 +175,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param application
      *            Application at that server
      */
+    @Override
     public void connect(String server, int port, String application) {
         log.debug("connect server: {} port {} application {}", new Object[] { server, port, application });
         connect(server, port, application, null);
@@ -192,6 +193,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param connectCallback
      *            Connection callback
      */
+    @Override
     public void connect(String server, int port, String application, IPendingServiceCallback connectCallback) {
         log.debug("connect server: {} port {} application {} connectCallback {}", new Object[] { server, port, application, connectCallback });
         connect(server, port, makeDefaultConnectionParams(server, port, application), connectCallback);
@@ -209,6 +211,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      *            the application name at the given server
      * @return connection parameters map
      */
+    @Override
     public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
         Map<String, Object> params = new ObjectMap<String, Object>();
         params.put("app", application);
@@ -235,6 +238,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param connectionParams
      *            Connection parameters
      */
+    @Override
     public void connect(String server, int port, Map<String, Object> connectionParams) {
         log.debug("connect server: {} port {} connectionParams {}", new Object[] { server, port, connectionParams });
         connect(server, port, connectionParams, null);
@@ -252,6 +256,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param connectCallback
      *            Connection callback
      */
+    @Override
     public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback) {
         connect(server, port, connectionParams, connectCallback, null);
     }
@@ -270,6 +275,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param connectCallArguments
      *            Arguments for 'connect' call
      */
+    @Override
     public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback, Object[] connectCallArguments) {
         log.debug("connect server: {} port {} connect - params: {} callback: {} args: {}", new Object[] { server, port, connectionParams, connectCallback, Arrays.toString(connectCallArguments) });
         log.info("{}://{}:{}/{}", new Object[] { protocol, server, port, connectionParams.get("app") });
@@ -288,6 +294,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param serviceProvider
      *            Service provider
      */
+    @Override
     public void setServiceProvider(Object serviceProvider) {
         this.serviceProvider = serviceProvider;
     }
@@ -297,6 +304,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * 
      * @param connectionClosedHandler
      */
+    @Override
     public void setConnectionClosedHandler(Runnable connectionClosedHandler) {
         log.debug("setConnectionClosedHandler: {}", connectionClosedHandler);
         this.connectionClosedHandler = connectionClosedHandler;
@@ -307,6 +315,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * 
      * @param exceptionHandler
      */
+    @Override
     public void setExceptionHandler(ClientExceptionHandler exceptionHandler) {
         log.debug("setExceptionHandler: {}", exceptionHandler);
         this.exceptionHandler = exceptionHandler;
@@ -321,6 +330,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      *            SO persistence flag
      * @return Client shared object instance
      */
+    @Override
     public IClientSharedObject getSharedObject(String name, boolean persistent) {
         log.debug("getSharedObject name: {} persistent {}", new Object[] { name, persistent });
         ClientSharedObject result = sharedObjects.get(name);
@@ -485,6 +495,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param callback
      *            Callback handler
      */
+    @Override
     public void invoke(String method, IPendingServiceCallback callback) {
         log.debug("invoke method: {} params {} callback {}", new Object[] { method, callback });
         // get it from the conn manager
@@ -508,6 +519,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param callback
      *            Callback object
      */
+    @Override
     public void invoke(String method, Object[] params, IPendingServiceCallback callback) {
         log.debug("invoke method: {} params {} callback {}", new Object[] { method, params, callback });
         if (conn != null) {
@@ -523,6 +535,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Disconnect the first connection in the connection map
      */
+    @Override
     public void disconnect() {
         log.debug("disconnect");
         if (conn != null) {
@@ -533,6 +546,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         }
     }
 
+    @Override
     public void createStream(IPendingServiceCallback callback) {
         log.debug("createStream - callback: {}", callback);
         IPendingServiceCallback wrapper = new CreateStreamCallBack(callback);
@@ -557,6 +571,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         invoke("FCSubscribe", params, wrapper);
     }
 
+    @Override
     public void publish(Number streamId, String name, String mode, INetStreamEventHandler handler) {
         log.debug("publish - stream id: {}, name: {}, mode: {}", new Object[] { streamId, name, mode });
         // setup the netstream handler
@@ -578,12 +593,14 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         conn.invoke(pendingCall, getChannelForStreamId(streamId));
     }
 
+    @Override
     public void unpublish(Number streamId) {
         log.debug("unpublish stream {}", streamId);
         PendingCall pendingCall = new PendingCall("publish", new Object[] { false });
         conn.invoke(pendingCall, getChannelForStreamId(streamId));
     }
 
+    @Override
     public void publishStreamData(Number streamId, IMessage message) {
         NetStreamPrivateData streamData = streamDataMap.get(streamId);
         log.debug("publishStreamData - stream data map: {}", streamDataMap);
@@ -598,6 +615,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         }
     }
 
+    @Override
     public void play(Number streamId, String name, int start, int length) {
         log.debug("play stream {}, name: {}, start {}, length {}", new Object[] { streamId, name, start, length });
         if (conn != null) {
@@ -628,30 +646,30 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * The following properties are supported on the play options:
      * 
      * <pre>
-     * 		streamName: String. The name of the stream to play or the new stream to switch to.
-     * 		oldStreamName: String. The name of the initial stream that needs to be switched out. This is not needed and ignored 
-     * 		               when play2 is used for just playing the stream and not switching to a new stream.
-     * 		start: Number. The start time of the new stream to play, just as supported by the existing play API. and it has the 
-     * 		               same defaults. This is ignored when the method is called for switching (in other words, the transition 
-     * 		               is either NetStreamPlayTransition.SWITCH or NetStreamPlayTransitions.SWAP)
-     * 		len: Number. The duration of the playback, just as supported by the existing play API and has the same defaults.
-     * 		transition: String. The transition mode for the playback command. It could be one of the following:
-     * 							NetStreamPlayTransitions.RESET
-     * 							NetStreamPlayTransitions.APPEND
-     * 							NetStreamPlayTransitions.SWITCH
-     * 							NetStreamPlayTransitions.SWAP
+     *         streamName: String. The name of the stream to play or the new stream to switch to.
+     *         oldStreamName: String. The name of the initial stream that needs to be switched out. This is not needed and ignored 
+     *                        when play2 is used for just playing the stream and not switching to a new stream.
+     *         start: Number. The start time of the new stream to play, just as supported by the existing play API. and it has the 
+     *                        same defaults. This is ignored when the method is called for switching (in other words, the transition 
+     *                        is either NetStreamPlayTransition.SWITCH or NetStreamPlayTransitions.SWAP)
+     *         len: Number. The duration of the playback, just as supported by the existing play API and has the same defaults.
+     *         transition: String. The transition mode for the playback command. It could be one of the following:
+     *                             NetStreamPlayTransitions.RESET
+     *                             NetStreamPlayTransitions.APPEND
+     *                             NetStreamPlayTransitions.SWITCH
+     *                             NetStreamPlayTransitions.SWAP
      * </pre>
      * 
      * NetStreamPlayTransitions:
      * 
      * <pre>
-     * 			APPEND : String = "append" - Adds the stream to a playlist and begins playback with the first stream.
-     * 	 		APPEND_AND_WAIT : String = "appendAndWait" - Builds a playlist without starting to play it from the first stream.
-     * 	 		RESET : String = "reset" - Clears any previous play calls and plays the specified stream immediately.
-     * 	 		RESUME : String = "resume" - Requests data from the new connection starting from the point at which the previous connection ended.
-     * 	 		STOP : String = "stop" - Stops playing the streams in a playlist.
-     * 	 		SWAP : String = "swap" - Replaces a content stream with a different content stream and maintains the rest of the playlist.
-     * 	 		SWITCH : String = "switch" - Switches from playing one stream to another stream, typically with streams of the same content.
+     *             APPEND : String = "append" - Adds the stream to a playlist and begins playback with the first stream.
+     *             APPEND_AND_WAIT : String = "appendAndWait" - Builds a playlist without starting to play it from the first stream.
+     *             RESET : String = "reset" - Clears any previous play calls and plays the specified stream immediately.
+     *             RESUME : String = "resume" - Requests data from the new connection starting from the point at which the previous connection ended.
+     *             STOP : String = "stop" - Stops playing the streams in a playlist.
+     *             SWAP : String = "swap" - Replaces a content stream with a different content stream and maintains the rest of the playlist.
+     *             SWITCH : String = "switch" - Switches from playing one stream to another stream, typically with streams of the same content.
      * </pre>
      * 
      * @see <a href="http://www.adobe.com/devnet/flashmediaserver/articles/dynstream_actionscript.html">ActionScript guide to dynamic
@@ -659,13 +677,14 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @see <a
      *      href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
      */
+    @Override
     public void play2(Number streamId, Map<String, ?> playOptions) {
         log.debug("play2 options: {}", playOptions.toString());
         /* { streamName=streams/new.flv,
             oldStreamName=streams/old.flv, 
-        	start=0, len=-1,
-        	offset=12.195, 
-        	transition=switch } */
+            start=0, len=-1,
+            offset=12.195, 
+            transition=switch } */
         // get the transition type
         String transition = (String) playOptions.get("transition");
         if (conn != null) {
@@ -889,6 +908,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * 
      * @return conn
      */
+    @Override
     public RTMPConnection getConnection() {
         return conn;
     }
@@ -942,6 +962,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * @param streamEventDispatcher
      *            event dispatcher
      */
+    @Override
     public void setStreamEventDispatcher(IEventDispatcher streamEventDispatcher) {
         this.streamEventDispatcher = streamEventDispatcher;
     }
@@ -964,18 +985,22 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             this.dispatcher = dispatcher;
         }
 
+        @Override
         public void close() {
             log.debug("NetStream close");
         }
 
+        @Override
         public void start() {
             log.debug("NetStream start");
         }
 
+        @Override
         public void stop() {
             log.debug("NetStream stop");
         }
 
+        @Override
         public void dispatchEvent(IEvent event) {
             log.debug("NetStream dispatchEvent: {}", event);
             if (dispatcher != null) {
@@ -993,6 +1018,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             this.wrapped = wrapped;
         }
 
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             Number streamId = (Number) call.getResult();
             log.debug("CreateStreamCallBack resultReceived - stream id: {} call: {}", streamId, call);
@@ -1022,6 +1048,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             this.wrapped = wrapped;
         }
 
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             wrapped.resultReceived(call);
         }
@@ -1036,6 +1063,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             this.wrapped = wrapped;
         }
 
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             Number streamId = (Number) call.getResult();
             log.debug("Stream id: {}", streamId);
@@ -1062,6 +1090,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             this.wrapped = wrapped;
         }
 
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             log.debug("resultReceived", call);
             if (call.getResult() instanceof ObjectMap<?, ?>) {

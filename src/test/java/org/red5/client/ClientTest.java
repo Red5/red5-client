@@ -25,6 +25,7 @@ public class ClientTest extends RTMPClient {
 
         final ClientTest player = new ClientTest();
         player.setConnectionClosedHandler(new Runnable() {
+            @Override
             public void run() {
                 System.out.println("Connection closed");
             }
@@ -51,12 +52,14 @@ public class ClientTest extends RTMPClient {
     }
 
     private IEventDispatcher streamEventDispatcher = new IEventDispatcher() {
+        @Override
         public void dispatchEvent(IEvent event) {
             System.out.println("ClientStream.dispachEvent()" + event.toString());
         }
     };
 
     private IPendingServiceCallback methodCallCallback = new IPendingServiceCallback() {
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("methodCallCallback");
             Map<?, ?> map = (Map<?, ?>) call.getResult();
@@ -65,6 +68,7 @@ public class ClientTest extends RTMPClient {
     };
 
     private IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("connectCallback");
             ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
@@ -82,6 +86,7 @@ public class ClientTest extends RTMPClient {
     };
 
     private IPendingServiceCallback createStreamCallback = new IPendingServiceCallback() {
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             Number streamId = (Number) call.getResult();
             /*

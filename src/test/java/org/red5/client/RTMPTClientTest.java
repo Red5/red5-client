@@ -50,12 +50,14 @@ public class RTMPTClientTest extends RTMPTClient {
     }
 
     private IEventDispatcher streamEventDispatcher = new IEventDispatcher() {
+        @Override
         public void dispatchEvent(IEvent event) {
             System.out.println("ClientStream.dispachEvent()" + event.toString());
         }
     };
 
     private IPendingServiceCallback methodCallCallback = new IPendingServiceCallback() {
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("methodCallCallback");
             Map<?, ?> map = (Map<?, ?>) call.getResult();
@@ -79,6 +81,7 @@ public class RTMPTClientTest extends RTMPTClient {
     }
 
     private IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("connectCallback");
             ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
@@ -108,6 +111,7 @@ public class RTMPTClientTest extends RTMPTClient {
     };
 
     private IPendingServiceCallback createStreamCallback = new IPendingServiceCallback() {
+        @Override
         public void resultReceived(IPendingServiceCall call) {
             int streamId = (Integer) call.getResult();
             /*

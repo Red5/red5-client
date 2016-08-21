@@ -28,10 +28,12 @@ public class RTMPTClientConnection extends BaseRTMPTConnection {
         this.state = new RTMP();
     }
 
+    @Override
     protected void onInactive() {
         this.close();
     }
 
+    @Override
     public IoBuffer getPendingMessages(int targetSize) {
         return foldPendingMessages(targetSize);
     }

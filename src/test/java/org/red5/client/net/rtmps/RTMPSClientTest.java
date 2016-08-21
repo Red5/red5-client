@@ -17,6 +17,7 @@ public class RTMPSClientTest {
     public void test31() throws InterruptedException {
         final RTMPSClient client = new RTMPSClient();
         client.setConnectionClosedHandler(new Runnable() {
+            @Override
             public void run() {
                 System.out.println("Connection closed");
             }
@@ -28,6 +29,7 @@ public class RTMPSClientTest {
             }
         });
         Thread t = new Thread(new Runnable() {
+            @Override
             public void run() {
                 client.connect(PropertiesReader.getProperty("rtmps.server"), Integer.valueOf(PropertiesReader.getProperty("rtmps.port")), PropertiesReader.getProperty("rtmps.app"), new IPendingServiceCallback() {
                     @Override
@@ -44,6 +46,7 @@ public class RTMPSClientTest {
                             // if its oflaDemo, get the list of flvs
                             if ("oflaDemo".equals(PropertiesReader.getProperty("rtmps.app"))) {
                                 client.invoke("demoService.getListOfAvailableFLVs", new Object[] {}, new IPendingServiceCallback() {
+                                    @Override
                                     public void resultReceived(IPendingServiceCall call) {
                                         System.out.println("methodCallCallback");
                                         Map<?, ?> map = (Map<?, ?>) call.getResult();
@@ -52,6 +55,7 @@ public class RTMPSClientTest {
                                 });
                             }
                             client.createStream(new IPendingServiceCallback() {
+                                @Override
                                 public void resultReceived(IPendingServiceCall call) {
                                     Number streamId = (Number) call.getResult();
                                     // live buffer 0.5s / vod buffer 4s
