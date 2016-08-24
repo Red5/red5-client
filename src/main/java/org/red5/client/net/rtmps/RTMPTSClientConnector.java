@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.client.net.rtmpt;
+package org.red5.client.net.rtmps;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,17 +24,14 @@ import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.ParseException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.client.net.rtmp.OutboundHandshake;
 import org.red5.client.net.rtmp.RTMPConnManager;
+import org.red5.client.net.rtmpt.RTMPTClientConnection;
+import org.red5.client.net.rtmpt.RTMPTClientConnector;
 import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -43,46 +40,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Client connector for RTMPT
+ * Client connector for RTMPT/S (RTMPS Tunneled)
  * 
- * @author Anton Lebedevich (mabrek@gmail.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class RTMPTClientConnector extends Thread {
+public class RTMPTSClientConnector extends RTMPTClientConnector {
 
-    private static final Logger log = LoggerFactory.getLogger(RTMPTClientConnector.class);
-
-    protected static final String CONTENT_TYPE = "application/x-fcs";
-
-    protected static final ByteArrayEntity ZERO_REQUEST_ENTITY = new ByteArrayEntity(new byte[] { 0 });
-
-    /**
-     * Size to split messages queue by, borrowed from RTMPTServlet.RESPONSE_TARGET_SIZE
-     */
-    protected static final int SEND_TARGET_SIZE = 32768;
-
-    protected HttpClient httpClient;
-
-    protected HttpHost targetHost;
-
-    protected RTMPTClient client;
-
-    protected String sessionId;
-
-    protected long messageCount = 1;
-
-    protected volatile boolean stopRequested = false;
+    private static final Logger log = LoggerFactory.getLogger(RTMPTSClientConnector.class);
 
     {
-        httpClient = HttpConnectionUtil.getClient();
+        httpClient = HttpConnectionUtil.getSecureClient();
     }
 
-    protected RTMPTClientConnector() {
-        // default ctor for extension purposes
-    }
-
-    public RTMPTClientConnector(String server, int port, RTMPTClient client) {
-        targetHost = new HttpHost(server, port, "http");
+    public RTMPTSClientConnector(String server, int port, RTMPTSClient client) {
+        targetHost = new HttpHost(server, port, "https");
         this.client = client;
     }
 
@@ -158,13 +129,6 @@ public class RTMPTClientConnector extends Thread {
         }
     }
 
-    /**
-     * @return the sessionId
-     */
-    public String getSessionId() {
-        return sessionId;
-    }
-
     private RTMPTClientConnection openConnection() throws IOException {
         RTMPTClientConnection conn = null;
         HttpPost openPost = getPost("/open/1");
@@ -200,45 +164,4 @@ public class RTMPTClientConnector extends Thread {
         return conn;
     }
 
-    protected void finalizeConnection() throws IOException {
-        log.debug("Sending close post");
-        HttpPost closePost = getPost(makeUrl("close"));
-        closePost.addHeader("Content-Type", CONTENT_TYPE);
-        closePost.setEntity(ZERO_REQUEST_ENTITY);
-        HttpResponse response = httpClient.execute(targetHost, closePost);
-        EntityUtils.consume(response.getEntity());
-    }
-
-    protected static HttpPost getPost(String uri) {
-        HttpPost post = new HttpPost(uri);
-        post.setProtocolVersion(HttpVersion.HTTP_1_1);
-        return post;
-    }
-
-    protected HttpPost makePost(String command) {
-        HttpPost post = getPost(makeUrl(command));
-        setCommonHeaders(post);
-        return post;
-    }
-
-    protected String makeUrl(String command) {
-        // use message count from connection
-        return String.format("/%s/%s/%s", command, sessionId, messageCount++);
-    }
-
-    protected static void setCommonHeaders(HttpPost post) {
-        post.addHeader("Connection", "Keep-Alive");
-        post.addHeader("Cache-Control", "no-cache");
-    }
-
-    protected static void checkResponseCode(HttpResponse response) throws ParseException, IOException {
-        int code = response.getStatusLine().getStatusCode();
-        if (code != HttpStatus.SC_OK) {
-            throw new RuntimeException("Bad HTTP status returned, line: " + response.getStatusLine() + "; body: " + EntityUtils.toString(response.getEntity()));
-        }
-    }
-
-    public void setStopRequested(boolean stopRequested) {
-        this.stopRequested = stopRequested;
-    }
 }

@@ -82,7 +82,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
     /**
      * List of pending messages
      */
-    private ConcurrentLinkedQueue<PendingData> pendingMessages = new ConcurrentLinkedQueue<PendingData>();
+    private ConcurrentLinkedQueue<PendingData> pendingMessages = new ConcurrentLinkedQueue<>();
 
     /**
      * Closing flag
@@ -194,10 +194,10 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
         log.debug("Overriding generated session id {} with {}", this.sessionId, sessionId);
         this.clientSessionId = sessionId;
         // reset the session id on the decoder state to prevent confusing log messages
-        //		RTMPDecodeState state = this.decoderState.get();
-        //		if (state != null) {
-        //			state.setSessionId(sessionId);
-        //		}
+        //RTMPDecodeState state = this.decoderState.get();
+        //if (state != null) {
+        //    state.setSessionId(sessionId);
+        //}
     }
 
     @Override

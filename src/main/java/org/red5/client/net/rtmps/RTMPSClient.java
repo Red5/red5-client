@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * RTMPS client object
+ * RTMPS client object (RTMPS Native)
  * 
  * <pre>
  * var nc:NetConnection = new NetConnection();

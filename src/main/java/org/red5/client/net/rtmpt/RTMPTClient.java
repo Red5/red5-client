@@ -43,9 +43,9 @@ public class RTMPTClient extends BaseRTMPClientHandler {
     private static final Logger log = LoggerFactory.getLogger(RTMPTClient.class);
 
     // guarded by this
-    private RTMPTClientConnector connector;
+    protected RTMPTClientConnector connector;
 
-    private RTMPTCodecFactory codecFactory;
+    protected RTMPTCodecFactory codecFactory;
 
     public RTMPTClient() {
         protocol = "rtmpt";
