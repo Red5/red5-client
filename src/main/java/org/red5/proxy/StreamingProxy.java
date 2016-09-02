@@ -57,7 +57,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 
     private static Logger log = LoggerFactory.getLogger(StreamingProxy.class);
 
-    private ConcurrentLinkedQueue<IMessage> frameBuffer = new ConcurrentLinkedQueue<IMessage>();
+    private ConcurrentLinkedQueue<IMessage> frameBuffer = new ConcurrentLinkedQueue<>();
 
     private String host;
 
@@ -178,7 +178,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
     @Override
     public void resultReceived(IPendingServiceCall call) {
         String method = call.getServiceMethodName();
-        log.debug("resultReceived:> {}", method);
+        log.debug("resultReceived: {}", method);
         if ("connect".equals(method)) {
             //rtmpClient.releaseStream(this, new Object[] { publishName });
             timer.schedule(new BandwidthStatusTask(), 2000L);

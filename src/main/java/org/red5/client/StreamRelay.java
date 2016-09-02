@@ -231,7 +231,7 @@ public class StreamRelay {
         @Override
         public void resultReceived(IPendingServiceCall call) {
             System.out.println("resultReceived: " + call);
-            int streamId = (Integer) call.getResult();
+            Double streamId = (Double) call.getResult();
             System.out.println("stream id: " + streamId);
             // send our buffer size request
             if (sourceStreamName.endsWith(".flv") || sourceStreamName.endsWith(".f4v") || sourceStreamName.endsWith(".mp4")) {

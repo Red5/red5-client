@@ -33,6 +33,9 @@
     <logger name="org.red5.server.net">
         <level value="TRACE" />
     </logger>
+    <logger name="org.red5.server.net.rtmp.event.BaseEvent" level="TRACE"/>
+    <logger name="org.red5.server.net.rtmp.event.Notify" level="TRACE"/>
+    <!-- 
     <logger name="org.red5.server.net.rtmp.RTMPHandshake">
         <level value="TRACE" />
     </logger>
@@ -42,6 +45,7 @@
     <logger name="org.red5.client.net.rtmp.OutboundHandshake">
         <level value="TRACE" />
     </logger>
+     -->
     <logger name="net.sf.ehcache">
         <level value="INFO" />
     </logger>

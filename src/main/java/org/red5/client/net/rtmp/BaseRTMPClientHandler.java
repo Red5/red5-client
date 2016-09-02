@@ -213,7 +213,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      */
     @Override
     public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
-        Map<String, Object> params = new ObjectMap<String, Object>();
+        Map<String, Object> params = new ObjectMap<>();
         params.put("app", application);
         params.put("objectEncoding", Integer.valueOf(0));
         params.put("fpad", Boolean.FALSE);
@@ -782,8 +782,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         }
         // potentially used twice so get the value once
         boolean onStatus = "onStatus".equals(methodName);
-        log.debug("onStatus {}", onStatus);
         if (onStatus) {
+            log.debug("onStatus");
             Number streamId = source.getStreamId();
             if (log.isDebugEnabled()) {
                 log.debug("Stream id from header: {}", streamId);
@@ -823,7 +823,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             // client doesn't support calling methods on him
             call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
             call.setException(new MethodNotFoundException(methodName));
-            log.info("No service provider / method not found; to handle calls like onBWCheck, add a service provider");
+            log.info("No service provider / method for: {}; to handle calls like onBWCheck, add a service provider", methodName);
         } else {
             serviceInvoker.invoke(call, serviceProvider);
         }
