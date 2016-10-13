@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class RTMPClientProtocolDecoder extends RTMPProtocolDecoder {
 
     {
-        log = LoggerFactory.getLogger(RTMPClientProtocolDecoder.class);
+        //log = LoggerFactory.getLogger(RTMPClientProtocolDecoder.class);
     }
 
     /**
