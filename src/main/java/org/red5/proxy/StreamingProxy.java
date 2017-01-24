@@ -67,7 +67,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 
     private RTMPClient rtmpClient;
 
-    private StreamState state;
+    private StreamState state = StreamState.UNINITIALIZED;
 
     private String publishName;
 
