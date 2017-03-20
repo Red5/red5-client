@@ -19,13 +19,12 @@
 package org.red5.client.net.rtmpt;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.api.IConnection;
 
 public class RTMPTClientConnection extends BaseRTMPTConnection {
 
     public RTMPTClientConnection() {
-        super(PERSISTENT);
-        this.state = new RTMP();
+        super(IConnection.Type.PERSISTENT.name().toLowerCase());
     }
 
     @Override
