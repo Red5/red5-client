@@ -137,7 +137,6 @@ public class OutboundHandshake extends RTMPHandshake {
             log.trace("Time and version handshake bytes: {}", Hex.encodeHexString(Arrays.copyOf(handshakeBytes, 8)));
         }
         // get the handshake digest
-        c1 = new byte[Constants.HANDSHAKE_SIZE];
         if (fp9Handshake) {
             // handle encryption setup
             if (useEncryption()) {
@@ -172,6 +171,8 @@ public class OutboundHandshake extends RTMPHandshake {
             System.arraycopy(c1, digestPosClient, outgoingDigest, 0, DIGEST_LENGTH);
             log.debug("Client digest: {}", Hex.encodeHexString(outgoingDigest));
             log.debug("Digest is valid: {}", verifyDigest(digestPosClient, c1, RTMPHandshake.GENUINE_FP_KEY, 30));
+        } else {
+            c1 = new byte[Constants.HANDSHAKE_SIZE];
         }
         if (log.isTraceEnabled()) {
             log.trace("C1: {}", Hex.encodeHexString(c1));
