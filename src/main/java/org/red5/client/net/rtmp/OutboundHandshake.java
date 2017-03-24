@@ -137,6 +137,7 @@ public class OutboundHandshake extends RTMPHandshake {
             log.trace("Time and version handshake bytes: {}", Hex.encodeHexString(Arrays.copyOf(handshakeBytes, 8)));
         }
         // get the handshake digest
+        c1 = new byte[Constants.HANDSHAKE_SIZE];
         if (fp9Handshake) {
             // handle encryption setup
             if (useEncryption()) {
@@ -165,7 +166,6 @@ public class OutboundHandshake extends RTMPHandshake {
             }
             digestPosClient = getDigestOffset(algorithm, handshakeBytes, 0);
             log.debug("Client digest position offset: {} algorithm: {}", digestPosClient, algorithm);
-            c1 = new byte[Constants.HANDSHAKE_SIZE];
             System.arraycopy(handshakeBytes, 0, c1, 0, Constants.HANDSHAKE_SIZE);
             calculateDigest(digestPosClient, handshakeBytes, 0, GENUINE_FP_KEY, 30, c1, digestPosClient);
             // local storage of outgoing digest
