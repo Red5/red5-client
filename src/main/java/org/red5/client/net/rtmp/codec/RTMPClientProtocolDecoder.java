@@ -4,7 +4,6 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.protocol.RTMPDecodeState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class to specifically handle the client side of the handshake routine.
