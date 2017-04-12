@@ -50,9 +50,12 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
 
     private static int executorQueueCapacity = 32;
 
+    // whether or not to use the ThreadPoolTaskExecutor for incoming messages
+    protected static boolean enableTaskExecutor;
+
     protected static IConnectionManager<RTMPConnection> instance = new RTMPConnManager();
 
-    protected ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<String, RTMPConnection>();
+    protected ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<>();
 
     protected AtomicInteger conns = new AtomicInteger();
 
@@ -223,14 +226,16 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
         conn.setMaxHandshakeTimeout(maxHandshakeTimeout);
         conn.setMaxInactivity(maxInactivity);
         conn.setPingInterval(pingInterval);
-        // setup executor
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);
-        executor.setDaemon(true);
-        executor.setMaxPoolSize(1);
-        executor.setQueueCapacity(executorQueueCapacity);
-        executor.initialize();
-        conn.setExecutor(executor);
+        if (enableTaskExecutor) {
+            // setup executor
+            ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+            executor.setCorePoolSize(1);
+            executor.setDaemon(true);
+            executor.setMaxPoolSize(1);
+            executor.setQueueCapacity(executorQueueCapacity);
+            executor.initialize();
+            conn.setExecutor(executor);
+        }
         return conn;
     }
 
@@ -248,6 +253,10 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
 
     public static void setExecutorQueueCapacity(int executorQueueCapacity) {
         RTMPConnManager.executorQueueCapacity = executorQueueCapacity;
+    }
+
+    public static void setEnableTaskExecutor(boolean enableTaskExecutor) {
+        RTMPConnManager.enableTaskExecutor = enableTaskExecutor;
     }
 
 }

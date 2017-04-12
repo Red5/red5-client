@@ -23,6 +23,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.red5.client.net.rtmpe.RTMPEIoFilter;
+import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
@@ -126,7 +127,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
             String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
             log.trace("Session id: {}", sessionId);
             RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+            Red5.setConnectionLocal(conn);
             conn.handleMessageReceived((Packet) message);
+            Red5.setConnectionLocal(null);
         } else {
             log.debug("Not packet type: {}", message);
         }
