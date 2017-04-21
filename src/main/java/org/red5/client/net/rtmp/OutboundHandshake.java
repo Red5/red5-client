@@ -56,6 +56,9 @@ public class OutboundHandshake extends RTMPHandshake {
     // server initial response S1
     private byte[] s1 = null;
 
+    // whether or not verification is mandatory
+    private boolean forceVerification;
+
     public OutboundHandshake() {
         super(RTMPConnection.RTMP_NON_ENCRYPTED);
         log = LoggerFactory.getLogger(OutboundHandshake.class);
@@ -377,6 +380,10 @@ public class OutboundHandshake extends RTMPHandshake {
             log.debug("Server digest position offset: {}", digestPosServer);
             if (!(result = verifyDigest(digestPosServer, s1, GENUINE_FMS_KEY, 36))) {
                 log.warn("Server digest verification failed");
+                // if we dont mind that verification routines failed
+                if (!forceVerification) {
+                    return true;
+                }
             } else {
                 log.debug("Server digest verified");
             }
@@ -461,6 +468,10 @@ public class OutboundHandshake extends RTMPHandshake {
 
     public byte[] getHandshakeBytes() {
         return c1;
+    }
+
+    public void setForceVerification(boolean forceVerification) {
+        this.forceVerification = forceVerification;
     }
 
 }

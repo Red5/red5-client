@@ -44,11 +44,12 @@ public class YouTubeConnectTest {
         String youtubeHost = "a.rtmp.youtube.com";
         int youtubePort = 1935;
         String youtubeApp = "live2";
-        final String youtubePublishName = System.getProperty("youtube.streamname");
-        if (youtubePublishName == null) {
-            log.info("You forgot to set a 'youtube.streamname' system property");
-            return;
-        }
+        final String youtubePublishName = "dybx-y3ph-uqzx-30vx"; //System.getProperty("youtube.streamname");
+        log.info("youtubePublishName: {}", youtubePublishName);
+//        if (youtubePublishName == null) {
+//            log.info("You forgot to set a 'youtube.streamname' system property");
+//            return;
+//        }
 
         final RTMPClient client = new RTMPClient();
         client.setConnectionClosedHandler(new Runnable() {
@@ -66,13 +67,13 @@ public class YouTubeConnectTest {
         client.setStreamEventDispatcher(new IEventDispatcher() {
             @Override
             public void dispatchEvent(IEvent event) {
-                log.info("ClientStream.dispachEvent() {}", event);
+                log.info("ClientStream.dispachEvent: {}", event);
             }
         });
         final INetStreamEventHandler netStreamEventHandler = new INetStreamEventHandler() {
             @Override
             public void onStreamEvent(Notify notify) {
-                log.info("ClientStream.dispachEvent() {}", notify);
+                log.info("ClientStream.onStreamEvent: {}", notify);
             }
         };
         client.setStreamEventHandler(netStreamEventHandler);
@@ -91,7 +92,7 @@ public class YouTubeConnectTest {
                     client.createStream(new IPendingServiceCallback() {
                         @Override
                         public void resultReceived(IPendingServiceCall call) {
-                            int streamId = (Integer) call.getResult();
+                            double streamId = (Double) call.getResult();
                             // live buffer 0.5s
                             @SuppressWarnings("unused")
                             RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
