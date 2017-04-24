@@ -769,7 +769,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             final IPendingServiceCall pendingCall = conn.getPendingCall(command.getTransactionId());
             log.debug("Received result for pending call - {}", pendingCall);
             if (pendingCall != null) {
-                if ("connect".equals(methodName)) {
+                if ("connect".equals(pendingCall.getServiceMethodName())) {
                     Integer encoding = (Integer) connectionParams.get("objectEncoding");
                     if (encoding != null && encoding.intValue() == 3) {
                         log.debug("Setting encoding to AMF3");
