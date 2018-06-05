@@ -18,12 +18,15 @@
 
 package org.red5.client.net.rtmp;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.red5.client.net.rtmpe.RTMPEIoFilter;
 import org.red5.server.api.Red5;
+import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
@@ -80,6 +83,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         session.setAttribute(RTMPConnection.RTMP_HANDLER, handler);
         // set a reference to the connection on the client
         handler.setConnection((RTMPConnection) conn);
+        // set a connection manager for any required handling and to prevent memory leaking
+        RTMPConnManager connManager = (RTMPConnManager) RTMPConnManager.getInstance();
+        session.setAttribute(RTMPConnection.RTMP_CONN_MANAGER, new WeakReference<IConnectionManager<RTMPConnection>>(connManager));
     }
 
     /** {@inheritDoc} */
@@ -101,7 +107,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
         if (sessionId != null) {
             log.trace("Session id: {}", sessionId);
-            RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+            RTMPMinaConnection conn = (RTMPMinaConnection) getConnectionManager(session).getConnectionBySessionId(sessionId);
             if (conn != null) {
                 conn.sendPendingServiceCallsCloseError();
                 // fire-off closed event
@@ -126,7 +132,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         if (message instanceof Packet && message != null) {
             String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
             log.trace("Session id: {}", sessionId);
-            RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+            RTMPMinaConnection conn = (RTMPMinaConnection) getConnectionManager(session).getConnectionBySessionId(sessionId);
             Red5.setConnectionLocal(conn);
             conn.handleMessageReceived((Packet) message);
             Red5.setConnectionLocal(null);
@@ -142,7 +148,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         if (message instanceof Packet) {
             String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
             log.trace("Session id: {}", sessionId);
-            RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+            RTMPMinaConnection conn = (RTMPMinaConnection) getConnectionManager(session).getConnectionBySessionId(sessionId);
             handler.messageSent(conn, (Packet) message);
         } else {
             log.trace("messageSent: {}", Hex.encodeHexString(((IoBuffer) message).array()));
@@ -179,6 +185,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 
     protected RTMPMinaConnection createRTMPMinaConnection() {
         return (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private RTMPConnManager getConnectionManager(IoSession session) {
+        return (RTMPConnManager) ((WeakReference<IConnectionManager<RTMPConnection>>) session.getAttribute(RTMPConnection.RTMP_CONN_MANAGER)).get();
     }
 
 }
