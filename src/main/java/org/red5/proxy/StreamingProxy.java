@@ -17,6 +17,7 @@ import java.util.concurrent.Semaphore;
 import org.red5.client.net.rtmp.ClientExceptionHandler;
 import org.red5.client.net.rtmp.INetStreamEventHandler;
 import org.red5.client.net.rtmp.RTMPClient;
+import org.red5.client.net.rtmps.RTMPSClient;
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
@@ -70,7 +71,20 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
     private static Timer timer;
 
     public void init() {
-        rtmpClient = new RTMPClient();
+        init(ClientType.RTMP);
+    }
+
+    public void init(ClientType clientType) {
+        switch (clientType) {
+            case RTMPS:
+                rtmpClient = new RTMPSClient();
+                break;
+            case RTMP:
+            default:
+                rtmpClient = new RTMPClient();
+                break;
+        }
+        log.debug("Initialized: {}", rtmpClient);
         setState(StreamState.STOPPED);
         // create a timer
         timer = new Timer();
