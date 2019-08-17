@@ -216,11 +216,11 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     public RTMPConnection createConnectionInstance(Class<?> cls) throws Exception {
         RTMPConnection conn = null;
         if (cls == RTMPMinaConnection.class) {
-            conn = (RTMPMinaConnection) cls.newInstance();
+            conn = (RTMPMinaConnection) cls.getDeclaredConstructor().newInstance();
         } else if (cls == RTMPTClientConnection.class) {
-            conn = (RTMPTClientConnection) cls.newInstance();
+            conn = (RTMPTClientConnection) cls.getDeclaredConstructor().newInstance();
         } else {
-            conn = (RTMPConnection) cls.newInstance();
+            conn = (RTMPConnection) cls.getDeclaredConstructor().newInstance();
         }
         conn.setMaxHandshakeTimeout(maxHandshakeTimeout);
         conn.setMaxInactivity(maxInactivity);
