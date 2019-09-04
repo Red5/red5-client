@@ -46,10 +46,10 @@ public class YouTubeConnectTest {
         String youtubeApp = "live2";
         final String youtubePublishName = "dybx-y3ph-uqzx-30vx"; //System.getProperty("youtube.streamname");
         log.info("youtubePublishName: {}", youtubePublishName);
-//        if (youtubePublishName == null) {
-//            log.info("You forgot to set a 'youtube.streamname' system property");
-//            return;
-//        }
+        //        if (youtubePublishName == null) {
+        //            log.info("You forgot to set a 'youtube.streamname' system property");
+        //            return;
+        //        }
 
         final RTMPClient client = new RTMPClient();
         client.setConnectionClosedHandler(new Runnable() {
@@ -108,7 +108,7 @@ public class YouTubeConnectTest {
         };
         // connect
         client.connect(youtubeHost, youtubePort, youtubeApp, connectCallback);
-        
+
         Thread.currentThread().join(30000L);
         client.disconnect();
         log.info("Test - end");
@@ -120,7 +120,7 @@ public class YouTubeConnectTest {
         String host = "localhost";
         int port = 1935;
         // check to see if a server is listening on 1935 before proceeding
-        
+
         String app = "live";
         final String publishName = "test";
         final RTMPClient client = new RTMPClient();
@@ -180,7 +180,7 @@ public class YouTubeConnectTest {
         };
         // connect
         client.connect(host, port, app, connectCallback);
-        
+
         Thread.currentThread().join(30000L);
         client.disconnect();
         log.info("Test - end");

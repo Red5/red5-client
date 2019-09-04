@@ -17,9 +17,9 @@ public class RTMPClientProtocolDecoder extends RTMPProtocolDecoder {
     /**
      * Decode first server response S1.
      * 
-     * @param conn
-     * @param state
-     * @param in
+     * @param conn connection
+     * @param state decode state
+     * @param in incoming data
      * @return server handshake bytes for S1 or null
      */
     public IoBuffer decodeHandshakeS1(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {
@@ -29,9 +29,9 @@ public class RTMPClientProtocolDecoder extends RTMPProtocolDecoder {
     /**
      * Decode second server response S2.
      * 
-     * @param conn
-     * @param state
-     * @param in
+     * @param conn connection
+     * @param state decode state
+     * @param in incoming data
      * @return null
      */
     public IoBuffer decodeHandshakeS2(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {

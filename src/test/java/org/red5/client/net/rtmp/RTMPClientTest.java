@@ -21,7 +21,7 @@ public class RTMPClientTest {
     private static Timer timer = new Timer();
 
     // AMS sample
-//    private static String sourceStreamName = "mp4:sample1_1500kbps.f4v";
+    //    private static String sourceStreamName = "mp4:sample1_1500kbps.f4v";
 
     // local sample
     private static String sourceStreamName = "flashContent";
@@ -66,33 +66,16 @@ public class RTMPClientTest {
             }
         };
 
-        /*client.connect("localhost", 1935, "live/remote/0586e318-6277-11e3-adc2-22000a1d91fe", new IPendingServiceCallback() {
-              @Override
-              public void resultReceived(IPendingServiceCall result) {
-                  System.out.println("resultReceived: " + result);
-                  ObjectMap<?, ?> map = (ObjectMap<?, ?>) result.getResult();
-                  String code = (String) map.get("code");
-                  System.out.printf("Response code: %s\n", code);
-                  if ("NetConnection.Connect.Rejected".equals(code)) {
-                      System.out.printf("Rejected: %s\n", map.get("description"));
-                      client.disconnect();
-                  } else if ("NetConnection.Connect.Success".equals(code)) {
-                      System.out.println("success: " + result.isSuccess());
-                      ArrayList<Object> list = new ArrayList<>();
-                      list.add(new Object[] { "fujifilm-x100s-video-test-1080p-full-hd-hdmp4_720.mp4" });
-                      list.add(new Object[] { "canon-500d-test-video-720-hd-30-fr-hdmp4_720.mp4" });
-                      Object[] params = { "64", "cc-video-processed/", list };
-                      //Object[] params = { "64", "cc-video-processed/" };
-                      client.invoke("loadPlaylist", params, new IPendingServiceCallback() {
-                          @Override
-                          public void resultReceived(IPendingServiceCall result) {
-                              System.out.println(result);
-                          }
-                      });
-                  }
-              }
-          });
-        */
+        /*
+         * client.connect("localhost", 1935, "live/remote/0586e318-6277-11e3-adc2-22000a1d91fe", new IPendingServiceCallback() {
+         * @Override public void resultReceived(IPendingServiceCall result) { System.out.println("resultReceived: " + result); ObjectMap<?, ?> map = (ObjectMap<?, ?>) result.getResult();
+         * String code = (String) map.get("code"); System.out.printf("Response code: %s\n", code); if ("NetConnection.Connect.Rejected".equals(code)) { System.out.printf("Rejected: %s\n",
+         * map.get("description")); client.disconnect(); } else if ("NetConnection.Connect.Success".equals(code)) { System.out.println("success: " + result.isSuccess()); ArrayList<Object>
+         * list = new ArrayList<>(); list.add(new Object[] { "fujifilm-x100s-video-test-1080p-full-hd-hdmp4_720.mp4" }); list.add(new Object[] {
+         * "canon-500d-test-video-720-hd-30-fr-hdmp4_720.mp4" }); Object[] params = { "64", "cc-video-processed/", list }; //Object[] params = { "64", "cc-video-processed/" };
+         * client.invoke("loadPlaylist", params, new IPendingServiceCallback() {
+         * @Override public void resultReceived(IPendingServiceCall result) { System.out.println(result); } }); } } });
+         */
         client.connect("localhost", 1935, "vod", connectCallback);
 
         do {

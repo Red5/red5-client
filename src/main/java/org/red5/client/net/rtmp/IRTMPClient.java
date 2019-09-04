@@ -9,46 +9,46 @@ import org.red5.server.messaging.IMessage;
 import org.red5.server.net.rtmp.RTMPConnection;
 
 public interface IRTMPClient {
-	
-	public void setConnectionClosedHandler(Runnable connectionClosedHandler);
 
-	public void setExceptionHandler(ClientExceptionHandler exceptionHandler);
+    public void setConnectionClosedHandler(Runnable connectionClosedHandler);
 
-	public void setStreamEventDispatcher(IEventDispatcher streamEventDispatcher);
+    public void setExceptionHandler(ClientExceptionHandler exceptionHandler);
 
-	public void setServiceProvider(Object serviceProvider);
+    public void setStreamEventDispatcher(IEventDispatcher streamEventDispatcher);
 
-	public void connect(String server, int port, String application);
+    public void setServiceProvider(Object serviceProvider);
 
-	public void connect(String server, int port, String application, IPendingServiceCallback connectCallback);
+    public void connect(String server, int port, String application);
 
-	public void connect(String server, int port, Map<String, Object> connectionParams);
+    public void connect(String server, int port, String application, IPendingServiceCallback connectCallback);
 
-	public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback);
+    public void connect(String server, int port, Map<String, Object> connectionParams);
 
-	public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback, Object[] connectCallArguments);
+    public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback);
 
-	public void invoke(String method, IPendingServiceCallback callback);
+    public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback, Object[] connectCallArguments);
 
-	public void invoke(String method, Object[] params, IPendingServiceCallback callback);
+    public void invoke(String method, IPendingServiceCallback callback);
 
-	public void disconnect();
+    public void invoke(String method, Object[] params, IPendingServiceCallback callback);
 
-	public void createStream(IPendingServiceCallback callback);
+    public void disconnect();
 
-	public void publish(Number streamId, String name, String mode, INetStreamEventHandler handler);
+    public void createStream(IPendingServiceCallback callback);
 
-	public void unpublish(Number streamId);
+    public void publish(Number streamId, String name, String mode, INetStreamEventHandler handler);
 
-	public void publishStreamData(Number streamId, IMessage message);
+    public void unpublish(Number streamId);
 
-	public void play(Number streamId, String name, int start, int length);
+    public void publishStreamData(Number streamId, IMessage message);
 
-	public void play2(Number streamId, Map<String, ?> playOptions);
+    public void play(Number streamId, String name, int start, int length);
 
-	public IClientSharedObject getSharedObject(String name, boolean persistent);
+    public void play2(Number streamId, Map<String, ?> playOptions);
 
-	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application);
-	
-	public RTMPConnection getConnection();
+    public IClientSharedObject getSharedObject(String name, boolean persistent);
+
+    public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application);
+
+    public RTMPConnection getConnection();
 }

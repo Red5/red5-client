@@ -13,13 +13,13 @@ public class ClientMethodHander {
 
     public void onStatus(IConnection conn, ObjectMap<String, Object> status) {
         log.debug("onStatus: {}", status);
-        
+
         String code = status.get("code").toString();
         if ("NetStream.Play.Stop".equals(code)) {
             log.debug("Playback stopped");
             conn.close();
         }
-        
+
     }
 
     public void onPlayStatus(IConnection conn, Map<Object, Object> info) {

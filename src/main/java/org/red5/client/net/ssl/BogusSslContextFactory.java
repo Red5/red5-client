@@ -49,9 +49,9 @@ public class BogusSslContextFactory {
     /**
      * Get SSLContext singleton.
      *
+     * @param server whether server or client
      * @return SSLContext
-     * @throws java.security.GeneralSecurityException
-     *
+     * @throws java.security.GeneralSecurityException thrown
      */
     public static SSLContext getInstance(boolean server) throws GeneralSecurityException {
         SSLContext retInstance = null;

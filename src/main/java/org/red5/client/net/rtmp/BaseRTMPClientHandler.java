@@ -1,19 +1,8 @@
 /*
- * RED5 Open Source Flash Server - https://github.com/Red5/
- * 
- * Copyright 2006-2015 by respective authors (see below). All rights reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * RED5 Open Source Flash Server - https://github.com/Red5/ Copyright 2006-2015 by respective authors (see below). All rights reserved. Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless
+ * required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
 package org.red5.client.net.rtmp;
@@ -302,7 +291,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Sets a handler for connection close.
      * 
-     * @param connectionClosedHandler
+     * @param connectionClosedHandler close handler
      */
     @Override
     public void setConnectionClosedHandler(Runnable connectionClosedHandler) {
@@ -313,7 +302,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Sets a handler for exceptions.
      * 
-     * @param exceptionHandler
+     * @param exceptionHandler exception handler
      */
     @Override
     public void setExceptionHandler(ClientExceptionHandler exceptionHandler) {
@@ -465,7 +454,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Called when negotiating bandwidth.
      * 
-     * @param params
+     * @param params bw parameters
      */
     public void onBWCheck(Object params) {
         log.debug("onBWCheck: {}", params);
@@ -473,6 +462,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 
     /**
      * Called when bandwidth has been configured.
+     * 
+     * @param params bw parameters
      */
     public void onBWDone(Object params) {
         log.debug("onBWDone: {}", params);
@@ -680,11 +671,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     @Override
     public void play2(Number streamId, Map<String, ?> playOptions) {
         log.debug("play2 options: {}", playOptions.toString());
-        /* { streamName=streams/new.flv,
-            oldStreamName=streams/old.flv, 
-            start=0, len=-1,
-            offset=12.195, 
-            transition=switch } */
+        /*
+         * { streamName=streams/new.flv, oldStreamName=streams/old.flv, start=0, len=-1, offset=12.195, transition=switch }
+         */
         // get the transition type
         String transition = (String) playOptions.get("transition");
         if (conn != null) {
@@ -860,7 +849,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Handle any exceptions that occur.
      * 
-     * @param throwable
+     * @param throwable Exception thrown
      */
     public void handleException(Throwable throwable) {
         log.debug("Handle exception: {} with: {}", throwable.getMessage(), exceptionHandler);
@@ -875,7 +864,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Returns a channel based on the given stream id.
      * 
-     * @param streamId
+     * @param streamId stream id
      * @return the channel for this stream id
      */
     protected int getChannelForStreamId(Number streamId) {
@@ -887,7 +876,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * 
      * @param protocol
      *            the data protocol to use.
-     * @throws Exception
+     * @throws Exception thrown
      */
     public void setProtocol(String protocol) throws Exception {
         this.protocol = protocol;
@@ -896,7 +885,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Sets a reference to the connection associated with this client handler.
      * 
-     * @param conn
+     * @param conn connection
      */
     public void setConnection(RTMPConnection conn) {
         this.conn = conn;
@@ -906,7 +895,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Returns the connection associated with this client.
      * 
-     * @return conn
+     * @return conn connection
      */
     @Override
     public RTMPConnection getConnection() {
@@ -916,7 +905,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Enables or disables SWF verification.
      * 
-     * @param enabled
+     * @param enabled state of SWF verification
      */
     public void setSwfVerification(boolean enabled) {
         swfVerification = enabled;
@@ -943,7 +932,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Returns true if this client is subscribed
      * 
-     * @return subscribed
+     * @return subscribed state
      */
     public boolean isSubscribed() {
         return subscribed;
@@ -1021,8 +1010,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         @Override
         public void resultReceived(IPendingServiceCall call) {
             Number streamId = (Number) call.getResult();
-            log.debug("CreateStreamCallBack resultReceived - stream id: {} call: {}", streamId, call);
-            log.debug("Connection: {}", conn);
+            log.debug("CreateStreamCallBack resultReceived - stream id: {} call: {} connection: {}", streamId, call, conn);
             if (conn != null && streamId != null) {
                 log.debug("Setting new net stream");
                 NetStream stream = new NetStream(streamEventDispatcher);
@@ -1066,8 +1054,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         @Override
         public void resultReceived(IPendingServiceCall call) {
             Number streamId = (Number) call.getResult();
-            log.debug("Stream id: {}", streamId);
-            log.debug("Connection: {}", conn);
+            log.debug("Stream id: {} connection: {}", streamId, conn);
             log.debug("DeleteStreamCallBack resultReceived - stream id: {}", streamId);
             if (conn != null && streamId != null) {
                 log.debug("Deleting net stream");

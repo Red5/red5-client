@@ -122,4 +122,3 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
     }
 
 }
-

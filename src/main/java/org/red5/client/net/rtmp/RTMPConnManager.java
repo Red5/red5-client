@@ -1,19 +1,8 @@
 /*
- * RED5 Open Source Flash Server - https://github.com/Red5/
- * 
- * Copyright 2006-2013 by respective authors (see below). All rights reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * RED5 Open Source Flash Server - https://github.com/Red5/ Copyright 2006-2013 by respective authors (see below). All rights reserved. Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless
+ * required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
 package org.red5.client.net.rtmp;
@@ -107,7 +96,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     /**
      * Adds a connection.
      * 
-     * @param conn
+     * @param conn connection
      */
     @Override
     public void setConnection(RTMPConnection conn) {
@@ -123,7 +112,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     /**
      * Returns a connection for a given client id.
      * 
-     * @param clientId
+     * @param clientId client id
      * @return connection if found and null otherwise
      */
     @Override
@@ -140,7 +129,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     /**
      * Returns a connection for a given session id.
      * 
-     * @param sessionId
+     * @param sessionId session id
      * @return connection if found and null otherwise
      */
     @Override
@@ -209,9 +198,9 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection> {
     /**
      * Creates a connection instance based on the supplied type.
      * 
-     * @param cls
+     * @param cls class
      * @return connection
-     * @throws Exception
+     * @throws Exception thrown
      */
     public RTMPConnection createConnectionInstance(Class<?> cls) throws Exception {
         RTMPConnection conn = null;

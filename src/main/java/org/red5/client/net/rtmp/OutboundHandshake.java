@@ -1,19 +1,8 @@
 /*
- * RED5 Open Source Flash Server - https://github.com/Red5/
- * 
- * Copyright 2006-2015 by respective authors (see below). All rights reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * RED5 Open Source Flash Server - https://github.com/Red5/ Copyright 2006-2015 by respective authors (see below). All rights reserved. Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless
+ * required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
 package org.red5.client.net.rtmp;
@@ -122,7 +111,7 @@ public class OutboundHandshake extends RTMPHandshake {
         handshakeBytes[0] = (byte) (time >>> 24);
         handshakeBytes[1] = (byte) (time >>> 16);
         handshakeBytes[2] = (byte) (time >>> 8);
-        handshakeBytes[3] = (byte) time; 
+        handshakeBytes[3] = (byte) time;
         if (fp9Handshake) {
             // flash player version > 9.0.115.0
             handshakeBytes[4] = (byte) 0x80;
@@ -140,7 +129,7 @@ public class OutboundHandshake extends RTMPHandshake {
             log.trace("Time and version handshake bytes: {}", Hex.encodeHexString(Arrays.copyOf(handshakeBytes, 8)));
         }
         // get the handshake digest
-        c1 = new byte[Constants.HANDSHAKE_SIZE];        
+        c1 = new byte[Constants.HANDSHAKE_SIZE];
         if (fp9Handshake) {
             // handle encryption setup
             if (useEncryption()) {
@@ -157,13 +146,13 @@ public class OutboundHandshake extends RTMPHandshake {
                 // perform special processing for each type if needed
                 switch (handshakeType) {
                     case RTMPConnection.RTMP_ENCRYPTED:
-                        
+
                         break;
                     case RTMPConnection.RTMP_ENCRYPTED_XTEA:
-                        
+
                         break;
                     case RTMPConnection.RTMP_ENCRYPTED_BLOWFISH:
-                        
+
                         break;
                 }
             }
@@ -255,10 +244,10 @@ public class OutboundHandshake extends RTMPHandshake {
                         cipherOut.update(dummyBytes);
                         break;
                     case RTMPConnection.RTMP_ENCRYPTED_XTEA:
-                        
+
                         break;
                     case RTMPConnection.RTMP_ENCRYPTED_BLOWFISH:
-                        
+
                         break;
                 }
             }
@@ -336,13 +325,13 @@ public class OutboundHandshake extends RTMPHandshake {
                 log.debug("RTMPE type 8 XTEA");
                 // encrypt signatureResp
                 for (int i = 0; i < DIGEST_LENGTH; i += 8) {
-                  //encryptXtea(signature, i, digest[i] % 15);
+                    //encryptXtea(signature, i, digest[i] % 15);
                 }
             } else if (handshakeType == RTMPConnection.RTMP_ENCRYPTED_BLOWFISH) {
                 log.debug("RTMPE type 9 Blowfish");
                 // encrypt signatureResp
                 for (int i = 0; i < DIGEST_LENGTH; i += 8) {
-                  //encryptBlowfish(signature, i, digest[i] % 15);
+                    //encryptBlowfish(signature, i, digest[i] % 15);
                 }
             }
             log.debug("Signature calculated: {}", Hex.encodeHexString(signature));
@@ -396,7 +385,7 @@ public class OutboundHandshake extends RTMPHandshake {
     /**
      * Determines the validation scheme for given input.
      * 
-     * @param input handshake bytes from the server
+     * @param handshake the handshake bytes from the server
      * @return true if server used a supported validation scheme, false if unsupported
      */
     @Override
