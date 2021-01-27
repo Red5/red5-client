@@ -58,7 +58,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
         if (enableSwfVerification) {
             String swfUrl = (String) handler.getConnectionParams().get("swfUrl");
             log.debug("SwfUrl: {}", swfUrl);
-            if (!StringUtils.isEmpty(swfUrl)) {
+            if (!StringUtils.hasText(swfUrl)) {
                 outgoingHandshake.initSwfVerification(swfUrl);
             }
         }
