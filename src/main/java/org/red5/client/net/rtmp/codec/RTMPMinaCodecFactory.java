@@ -29,7 +29,9 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
         clientDecoder = new RTMPMinaProtocolDecoder() {
             @Override
             public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws ProtocolCodecException {
-                log.trace("decode buffer position: {}", in.position());
+                if (log.isDebugEnabled()) {
+                    log.debug("decode: {} out: {}", in, out);
+                }
                 // get the connection from the session
                 String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
                 log.trace("Session id: {}", sessionId);
@@ -75,6 +77,9 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
         clientEncoder = new RTMPMinaProtocolEncoder() {
             @Override
             public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
+                if (log.isDebugEnabled()) {
+                    log.debug("encode: {} out: {}", message, out);
+                }
                 // get the connection from the session
                 String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
                 log.trace("Session id: {}", sessionId);
@@ -86,7 +91,7 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
                         // acquire the encoder lock
                         lock.acquire();
                         // get the buffer
-                        final IoBuffer buf = message instanceof IoBuffer ? (IoBuffer) message : getEncoder().encode(message);
+                        IoBuffer buf = message instanceof IoBuffer ? (IoBuffer) message : getEncoder().encode(message);
                         if (buf != null) {
                             if (log.isTraceEnabled()) {
                                 log.trace("Writing output data: {}", Hex.encodeHexString(buf.array()));

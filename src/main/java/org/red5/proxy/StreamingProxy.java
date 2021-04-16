@@ -17,6 +17,7 @@ import java.util.concurrent.Semaphore;
 import org.red5.client.net.rtmp.ClientExceptionHandler;
 import org.red5.client.net.rtmp.INetStreamEventHandler;
 import org.red5.client.net.rtmp.RTMPClient;
+import org.red5.client.net.rtmpe.RTMPEClient;
 import org.red5.client.net.rtmps.RTMPSClient;
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.service.IPendingServiceCall;
@@ -76,6 +77,9 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 
     public void init(ClientType clientType) {
         switch (clientType) {
+            case RTMPE:
+                rtmpClient = new RTMPEClient();
+                break;
             case RTMPS:
                 rtmpClient = new RTMPSClient();
                 break;
@@ -255,7 +259,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
             log.debug("Bandwidth check done: {}", rtmpClient.isBandwidthCheckDone());
             // cancel this task
             this.cancel();
-            // initate the stream creation
+            // initiate the stream creation
             createStream();
         }
 

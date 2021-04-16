@@ -39,7 +39,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
     protected static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
 
     // I/O handler
-    private final RTMPMinaIoHandler ioHandler;
+    protected final RTMPMinaIoHandler ioHandler;
 
     // Socket connector, disposed on disconnect
     protected SocketConnector socketConnector;
@@ -48,7 +48,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
     protected ConnectFuture future;
 
     // Connected IoSession
-    private IoSession session;
+    protected IoSession session;
 
     /** Constructs a new RTMPClient. */
     public RTMPClient() {
@@ -69,6 +69,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
     /** {@inheritDoc} */
     @Override
     protected void startConnector(String server, int port) {
+        log.debug("startConnector - server: {} port: {}", server, port);
         socketConnector = new NioSocketConnector();
         socketConnector.setHandler(ioHandler);
         future = socketConnector.connect(new InetSocketAddress(server, port));
@@ -79,7 +80,9 @@ public class RTMPClient extends BaseRTMPClientHandler {
                     // will throw RuntimeException after connection error
                     session = future.getSession();
                 } catch (Throwable e) {
-                    socketConnector.dispose(false);
+                    log.warn("Exception in startConnector", e);
+                    // disconnect this
+                    disconnect();
                     // if there isn't an ClientExceptionHandler set, a RuntimeException may be thrown in handleException
                     handleException(e);
                 }
@@ -87,6 +90,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
         });
         // Now wait for the connect to be completed
         future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
+        log.debug("startConnector {} done", Thread.currentThread().getName());
     }
 
     /** {@inheritDoc} */

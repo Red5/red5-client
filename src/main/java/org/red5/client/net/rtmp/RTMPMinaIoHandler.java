@@ -13,6 +13,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
+import org.red5.client.net.rtmpe.RTMPEClient;
 import org.red5.client.net.rtmpe.RTMPEIoFilter;
 import org.red5.server.api.Red5;
 import org.red5.server.net.IConnectionManager;
@@ -62,12 +63,13 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
                 outgoingHandshake.initSwfVerification(swfUrl);
             }
         }
-        //if handler is rtmpe client set encryption on the protocol state
-        //if (handler instanceof RTMPEClient) {
-        //rtmp.setEncrypted(true);
-        //set the handshake type to encrypted as well
-        //outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_ENCRYPTED);
-        //}
+        // if handler is rtmpe client set encryption on the protocol state
+        if (handler instanceof RTMPEClient) {
+            // set encrypted flag on the state
+            conn.getState().setEncrypted(true);
+            // set the handshake type to encrypted as well
+            outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_ENCRYPTED);
+        }
         // set a reference to the handler on the sesssion
         session.setAttribute(RTMPConnection.RTMP_HANDLER, handler);
         // set a reference to the connection on the client

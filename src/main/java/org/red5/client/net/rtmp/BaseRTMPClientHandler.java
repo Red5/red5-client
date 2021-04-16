@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.IConnection;
@@ -141,6 +143,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 
     private int bytesWrittenWindow = 2500000;
 
+    /**
+     * For handling threading / scheduling in the clients.
+     */
+    protected ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+
     protected BaseRTMPClientHandler() {
     }
 
@@ -166,7 +173,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      */
     @Override
     public void connect(String server, int port, String application) {
-        log.debug("connect server: {} port {} application {}", new Object[] { server, port, application });
+        //log.debug("connect server: {} port {} application {}", new Object[] { server, port, application });
         connect(server, port, application, null);
     }
 
@@ -184,7 +191,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      */
     @Override
     public void connect(String server, int port, String application, IPendingServiceCallback connectCallback) {
-        log.debug("connect server: {} port {} application {} connectCallback {}", new Object[] { server, port, application, connectCallback });
+        //log.debug("connect server: {} port {} application {} connectCallback {}", new Object[] { server, port, application, connectCallback });
         connect(server, port, makeDefaultConnectionParams(server, port, application), connectCallback);
     }
 
@@ -229,7 +236,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      */
     @Override
     public void connect(String server, int port, Map<String, Object> connectionParams) {
-        log.debug("connect server: {} port {} connectionParams {}", new Object[] { server, port, connectionParams });
+        //log.debug("connect server: {} port {} connectionParams {}", new Object[] { server, port, connectionParams });
         connect(server, port, connectionParams, null);
     }
 
@@ -291,7 +298,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Sets a handler for connection close.
      * 
-     * @param connectionClosedHandler close handler
+     * @param connectionClosedHandler
+     *            close handler
      */
     @Override
     public void setConnectionClosedHandler(Runnable connectionClosedHandler) {
@@ -302,7 +310,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Sets a handler for exceptions.
      * 
-     * @param exceptionHandler exception handler
+     * @param exceptionHandler
+     *            exception handler
      */
     @Override
     public void setExceptionHandler(ClientExceptionHandler exceptionHandler) {
@@ -454,7 +463,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Called when negotiating bandwidth.
      * 
-     * @param params bw parameters
+     * @param params
+     *            bw parameters
      */
     public void onBWCheck(Object params) {
         log.debug("onBWCheck: {}", params);
@@ -463,7 +473,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Called when bandwidth has been configured.
      * 
-     * @param params bw parameters
+     * @param params
+     *            bw parameters
      */
     public void onBWDone(Object params) {
         log.debug("onBWDone: {}", params);
@@ -528,12 +539,10 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      */
     @Override
     public void disconnect() {
-        log.debug("disconnect");
+        log.debug("disconnect: {}", conn);
         if (conn != null) {
             streamDataMap.clear();
             conn.close();
-        } else {
-            log.info("Connection was null");
         }
     }
 
@@ -665,8 +674,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * 
      * @see <a href="http://www.adobe.com/devnet/flashmediaserver/articles/dynstream_actionscript.html">ActionScript guide to dynamic
      *      streaming</a>
-     * @see <a
-     *      href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
+     * @see <a href=
+     *      "http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
      */
     @Override
     public void play2(Number streamId, Map<String, ?> playOptions) {
@@ -721,29 +730,57 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     @Override
     public void connectionOpened(RTMPConnection conn) {
         log.trace("connectionOpened - conn: {}", conn);
-        // Send "connect" call to the server
-        Channel channel = conn.getChannel((byte) 3);
-        PendingCall pendingCall = new PendingCall("connect");
-        pendingCall.setArguments(connectArguments);
-        Invoke invoke = new Invoke(pendingCall);
-        invoke.setConnectionParams(connectionParams);
-        invoke.setTransactionId(1);
-        if (connectCallback != null) {
-            pendingCall.registerCallback(connectCallback);
-        }
-        conn.registerPendingCall(invoke.getTransactionId(), pendingCall);
-        log.debug("Writing 'connect' invoke: {}, invokeId: {}", invoke, invoke.getTransactionId());
-        channel.write(invoke);
+        executor.submit(() -> {
+            Thread.currentThread().setName(String.format("ClientOpener@%s", conn.getSessionId()));
+            // Send "connect" call to the server
+            Channel channel = conn.getChannel(3);
+            PendingCall pendingCall = new PendingCall("connect");
+            pendingCall.setArguments(connectArguments);
+            Invoke invoke = new Invoke(pendingCall);
+            invoke.setConnectionParams(connectionParams);
+            invoke.setTransactionId(1);
+            // get chunk size we'll write
+            final int chunkSize = conn.getState().getWriteChunkSize();
+            // register a callback for chunksize if we're greater than 128 (default)
+            if (chunkSize > 128) {
+                pendingCall.registerCallback(new IPendingServiceCallback() {
+
+                    @Override
+                    public void resultReceived(IPendingServiceCall call) {
+                        // inform the server we'll be using larger chunk sizes
+                        ChunkSize chunkSizeMessage = new ChunkSize(chunkSize);
+                        Channel channel = conn.getChannel(2);
+                        log.debug("Writing chunksize: {}", chunkSizeMessage);
+                        channel.write(chunkSizeMessage);
+                    }
+
+                });
+            }
+            // register any other callback
+            if (connectCallback != null) {
+                pendingCall.registerCallback(connectCallback);
+            }
+            conn.registerPendingCall(invoke.getTransactionId(), pendingCall);
+            log.debug("Writing 'connect' invoke: {}, invokeId: {}", invoke, invoke.getTransactionId());
+            channel.write(invoke);
+        });
     }
 
     @Override
     public void connectionClosed(RTMPConnection conn) {
         log.debug("connectionClosed");
         super.connectionClosed(conn);
-        if (connectionClosedHandler != null) {
-            Thread t = new Thread(connectionClosedHandler);
-            t.setDaemon(true);
-            t.start();
+        byte stateCode = conn.getStateCode();
+        // submit close handler only if we're not yet disconnected
+        if (stateCode != RTMP.STATE_DISCONNECTED) {
+            if (connectionClosedHandler != null) {
+                executor.submit(connectionClosedHandler);
+            }
+        }
+        // shutdown the executor when we're disconnected
+        if (stateCode == RTMP.STATE_DISCONNECTED) {
+            log.debug("Shutting down executor");
+            executor.shutdown();
         }
     }
 
@@ -849,7 +886,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Handle any exceptions that occur.
      * 
-     * @param throwable Exception thrown
+     * @param throwable
+     *            Exception thrown
      */
     public void handleException(Throwable throwable) {
         log.debug("Handle exception: {} with: {}", throwable.getMessage(), exceptionHandler);
@@ -864,7 +902,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Returns a channel based on the given stream id.
      * 
-     * @param streamId stream id
+     * @param streamId
+     *            stream id
      * @return the channel for this stream id
      */
     protected int getChannelForStreamId(Number streamId) {
@@ -876,7 +915,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
      * 
      * @param protocol
      *            the data protocol to use.
-     * @throws Exception thrown
+     * @throws Exception
+     *             thrown
      */
     public void setProtocol(String protocol) throws Exception {
         this.protocol = protocol;
@@ -885,7 +925,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Sets a reference to the connection associated with this client handler.
      * 
-     * @param conn connection
+     * @param conn
+     *            connection
      */
     public void setConnection(RTMPConnection conn) {
         this.conn = conn;
@@ -905,7 +946,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     /**
      * Enables or disables SWF verification.
      * 
-     * @param enabled state of SWF verification
+     * @param enabled
+     *            state of SWF verification
      */
     public void setSwfVerification(boolean enabled) {
         swfVerification = enabled;

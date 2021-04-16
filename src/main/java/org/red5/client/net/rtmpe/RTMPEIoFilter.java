@@ -13,7 +13,6 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteRequest;
-import org.apache.mina.core.write.WriteRequestWrapper;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.red5.client.net.rtmp.BaseRTMPClientHandler;
 import org.red5.client.net.rtmp.OutboundHandshake;
@@ -23,6 +22,7 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmpe.EncryptedWriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,6 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                         }
                         byte[] encrypted = new byte[message.remaining()];
                         message.get(encrypted);
-                        message.clear();
                         message.free();
                         byte[] plain = cipher.update(encrypted);
                         IoBuffer messageDecrypted = IoBuffer.wrap(plain);
@@ -122,7 +121,7 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                     IoBuffer c2 = handshake.decodeServerResponse1(IoBuffer.wrap(dst));
                     if (c2 != null) {
                         // set state to indicate we're waiting for S2
-                        conn.getState().setState(RTMP.STATE_HANDSHAKE);
+                        rtmp.setState(RTMP.STATE_HANDSHAKE);
                         //log.trace("C2 byte order: {}", c2.order());
                         session.write(c2);
                         // if we got S0S1+S2 continue processing
@@ -168,8 +167,8 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                         log.debug("S2 decoding successful");
                     } else {
                         log.debug("S2 decoding failed");
-                        // complete the connection regardless of the S2 failure
                     }
+                    // complete the connection regardless of the S2 success or failure
                     completeConnection(session, conn, rtmp, handshake);
                 }
                 break;
@@ -193,72 +192,68 @@ public class RTMPEIoFilter extends IoFilterAdapter {
      * @param handshake
      */
     private static void completeConnection(IoSession session, RTMPMinaConnection conn, RTMP rtmp, OutboundHandshake handshake) {
+        // set state to indicate we're connected
+        rtmp.setState(RTMP.STATE_CONNECTED);
+        // set chunk sizes
+        //rtmp.setWriteChunkSize(1024);
+        //rtmp.setReadChunkSize(1024);
+        // configure encryption
         if (handshake.useEncryption()) {
+            log.debug("Connected, setting up encryption and removing handshake data");
             // set encryption flag the rtmp state
             rtmp.setEncrypted(true);
             // add the ciphers
             log.debug("Adding ciphers to the session");
-            session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
-            session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
+            // seems counter intuitive, but it works 
+            session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherOut());
+            session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherIn());
+            log.trace("Ciphers in: {} out: {}", handshake.getCipherIn(), handshake.getCipherOut());
+        } else {
+            log.debug("Connected, removing handshake data");
         }
-        // set state to indicate we're connected
-        conn.getState().setState(RTMP.STATE_CONNECTED);
-        log.debug("Connected, removing handshake data");
         // remove handshake from session now that we are connected
         session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
         // add protocol filter as the last one in the chain
         log.debug("Adding RTMP protocol filter");
         session.getFilterChain().addAfter("rtmpeFilter", "protocolFilter", new ProtocolCodecFilter(new RTMPMinaCodecFactory()));
-        // get the rtmp handler
+        // let the client know it may proceed
         BaseRTMPClientHandler handler = (BaseRTMPClientHandler) session.getAttribute(RTMPConnection.RTMP_HANDLER);
         handler.connectionOpened(conn);
     }
 
     @Override
     public void filterWrite(NextFilter nextFilter, IoSession session, WriteRequest request) throws Exception {
-        RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId((String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID));
-        // filter based on current connection state
-        if (conn.getState().getState() == RTMP.STATE_CONNECTED && session.containsAttribute(RTMPConnection.RTMPE_CIPHER_OUT)) {
+        // grab the message
+        Object message = request.getMessage();
+        // if its bytes, we may encrypt thme
+        if (message instanceof IoBuffer) {
+            // filter based on current connection state
             Cipher cipher = (Cipher) session.getAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
-            IoBuffer message = (IoBuffer) request.getMessage();
-            if (!message.hasRemaining()) {
-                if (log.isTraceEnabled()) {
-                    log.trace("Ignoring empty message");
+            if (cipher != null) {
+                IoBuffer buf = (IoBuffer) message;
+                int remaining = buf.remaining();
+                if (remaining > 0) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Encrypting {} bytes, message: {}", remaining, buf);
+                    }
+                    byte[] plain = new byte[remaining];
+                    buf.get(plain);
+                    buf.free();
+                    // encrypt and write
+                    byte[] encrypted = cipher.update(plain);
+                    buf = IoBuffer.wrap(encrypted);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Encrypted message: {}", buf);
+                    }
                 }
-                nextFilter.filterWrite(session, request);
+                nextFilter.filterWrite(session, new EncryptedWriteRequest(request, buf));
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Encrypting message: {}", message);
-                }
-                byte[] plain = new byte[message.remaining()];
-                message.get(plain);
-                message.clear();
-                message.free();
-                // encrypt and write
-                byte[] encrypted = cipher.update(plain);
-                IoBuffer messageEncrypted = IoBuffer.wrap(encrypted);
-                if (log.isDebugEnabled()) {
-                    log.debug("Encrypted message: {}", messageEncrypted);
-                }
-                nextFilter.filterWrite(session, new EncryptedWriteRequest(request, messageEncrypted));
+                log.trace("Non-encrypted message");
+                nextFilter.filterWrite(session, request);
             }
         } else {
-            log.trace("Non-encrypted message");
+            log.trace("Passing through packet");
             nextFilter.filterWrite(session, request);
-        }
-    }
-
-    private static class EncryptedWriteRequest extends WriteRequestWrapper {
-        private final IoBuffer encryptedMessage;
-
-        private EncryptedWriteRequest(WriteRequest writeRequest, IoBuffer encryptedMessage) {
-            super(writeRequest);
-            this.encryptedMessage = encryptedMessage;
-        }
-
-        @Override
-        public Object getMessage() {
-            return encryptedMessage;
         }
     }
 
