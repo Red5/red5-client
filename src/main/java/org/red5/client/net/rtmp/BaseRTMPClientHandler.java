@@ -351,7 +351,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
         RTMP state = conn.getState();
         state.setReadChunkSize(chunkSize.getSize());
         state.setWriteChunkSize(chunkSize.getSize());
-        log.info("ChunkSize is not fully implemented: {}", chunkSize);
+        log.info("ChunkSize configured: {}", chunkSize);
     }
 
     /** {@inheritDoc} */
@@ -627,7 +627,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             PendingCall receiveAudioCall = new PendingCall("receiveAudio");
             conn.invoke(receiveAudioCall, channel);
             PendingCall receiveVideoCall = new PendingCall("receiveVideo");
-            conn.invoke(receiveVideoCall, channel);
+            conn.invoke(receiveVideoCall, channel);   
             // call play
             Object[] params = new Object[3];
             params[0] = name;
@@ -739,23 +739,6 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             Invoke invoke = new Invoke(pendingCall);
             invoke.setConnectionParams(connectionParams);
             invoke.setTransactionId(1);
-            // get chunk size we'll write
-            final int chunkSize = conn.getState().getWriteChunkSize();
-            // register a callback for chunksize if we're greater than 128 (default)
-            if (chunkSize > 128) {
-                pendingCall.registerCallback(new IPendingServiceCallback() {
-
-                    @Override
-                    public void resultReceived(IPendingServiceCall call) {
-                        // inform the server we'll be using larger chunk sizes
-                        ChunkSize chunkSizeMessage = new ChunkSize(chunkSize);
-                        Channel channel = conn.getChannel(2);
-                        log.debug("Writing chunksize: {}", chunkSizeMessage);
-                        channel.write(chunkSizeMessage);
-                    }
-
-                });
-            }
             // register any other callback
             if (connectCallback != null) {
                 pendingCall.registerCallback(connectCallback);

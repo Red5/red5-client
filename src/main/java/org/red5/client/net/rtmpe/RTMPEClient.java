@@ -261,12 +261,12 @@ public class RTMPEClient extends RTMPClient implements INetStreamEventHandler, C
             } else {
                 log.debug("Service call result: {}", call);
                 String methodName = call.getServiceMethodName();
-                log.debug("Service method: {}", methodName);
+                log.debug("Service method: {} result type: {}", methodName, result.getClass().getName());
                 if ("connect".equals(methodName)) {
                     client.createStream(this);
                 } else if ("createStream".equals(methodName)) {
-                    if (result instanceof Integer) {
-                        int streamId = (Integer) result;
+                    if (result instanceof Number) {
+                        int streamId = ((Number) result).intValue();
                         log.debug("CreateStream result stream id: {}", streamId);
                         // http://www.adobe.com/livedocs/flash/9.0/ActionScriptLangRefV3/flash/net/NetStream.html#play()
                         // start: The default value is -2, which looks for a live stream, then a recorded stream, and if it finds neither, opens a live stream. 
@@ -279,9 +279,6 @@ public class RTMPEClient extends RTMPClient implements INetStreamEventHandler, C
                         play(streamId, streamName, start, duration);
                         // update to playing
                         state = ClientState.PLAYING;
-                    } else {
-                        disconnect();
-                        state = ClientState.STOPPED;
                     }
                 } else {
                     log.debug("Unhandled method: {}", methodName);

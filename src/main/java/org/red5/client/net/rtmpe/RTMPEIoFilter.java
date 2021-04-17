@@ -194,9 +194,6 @@ public class RTMPEIoFilter extends IoFilterAdapter {
     private static void completeConnection(IoSession session, RTMPMinaConnection conn, RTMP rtmp, OutboundHandshake handshake) {
         // set state to indicate we're connected
         rtmp.setState(RTMP.STATE_CONNECTED);
-        // set chunk sizes
-        //rtmp.setWriteChunkSize(1024);
-        //rtmp.setReadChunkSize(1024);
         // configure encryption
         if (handshake.useEncryption()) {
             log.debug("Connected, setting up encryption and removing handshake data");
