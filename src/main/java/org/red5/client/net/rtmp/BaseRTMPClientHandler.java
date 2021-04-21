@@ -627,7 +627,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
             PendingCall receiveAudioCall = new PendingCall("receiveAudio");
             conn.invoke(receiveAudioCall, channel);
             PendingCall receiveVideoCall = new PendingCall("receiveVideo");
-            conn.invoke(receiveVideoCall, channel);   
+            conn.invoke(receiveVideoCall, channel);
             // call play
             Object[] params = new Object[3];
             params[0] = name;
