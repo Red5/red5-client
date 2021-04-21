@@ -8,7 +8,7 @@
 package org.red5.client.net.rtmpe;
 
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -317,7 +317,7 @@ public class RTMPEClient extends RTMPClient implements INetStreamEventHandler, C
      */
     public static Writer createWriter(RTMPEClient client) {
         // test output by writing an flv
-        Writer writer = new Writer(Path.of("target", System.currentTimeMillis() + ".flv"));
+        Writer writer = new Writer(Paths.get("target", System.currentTimeMillis() + ".flv"));
         client.addClientListener(writer);
         return writer;
     }
