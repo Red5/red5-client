@@ -69,6 +69,10 @@
             <url>https://oss.sonatype.org/content/repositories/releases</url>
         </repository>
     </repositories>
+    <version>1.2.9</version>
+	<properties>
+		<red5.version>1.2.8</red5.version>
+	</properties>
     <build>
         <defaultGoal>install</defaultGoal>
         <plugins>
@@ -118,7 +122,7 @@
         <dependency>
             <groupId>org.red5</groupId>
             <artifactId>red5-server-common</artifactId>
-            <version>${project.version}</version>
+            <version>${red5.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.mina</groupId>
