@@ -408,7 +408,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 
                 break;
             default:
-                log.warn("Unhandled ping: {}", ping);
+                log.debug("Unhandled ping: {}", ping);
         }
     }
 
