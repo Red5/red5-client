@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.red5</groupId>
         <artifactId>red5-parent</artifactId>
-        <version>1.2.8</version>
+        <version>1.2.10</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>red5-client</artifactId>
@@ -69,10 +69,6 @@
             <url>https://oss.sonatype.org/content/repositories/releases</url>
         </repository>
     </repositories>
-    <version>1.2.9</version>
-	<properties>
-		<red5.version>1.2.8</red5.version>
-	</properties>
     <build>
         <defaultGoal>install</defaultGoal>
         <plugins>
@@ -122,7 +118,7 @@
         <dependency>
             <groupId>org.red5</groupId>
             <artifactId>red5-server-common</artifactId>
-            <version>${red5.version}</version>
+            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.mina</groupId>
