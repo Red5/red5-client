@@ -20,7 +20,6 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.util.FileUtil;
-import org.slf4j.LoggerFactory;
 
 /**
  * Performs handshaking for client connections.
@@ -50,12 +49,10 @@ public class OutboundHandshake extends RTMPHandshake {
 
     public OutboundHandshake() {
         super(RTMPConnection.RTMP_NON_ENCRYPTED);
-        log = LoggerFactory.getLogger(OutboundHandshake.class);
     }
 
     public OutboundHandshake(byte handshakeType) {
         super(handshakeType);
-        log = LoggerFactory.getLogger(OutboundHandshake.class);
     }
 
     public OutboundHandshake(byte handshakeType, int algorithm) {
