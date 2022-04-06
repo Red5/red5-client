@@ -186,12 +186,8 @@ public class OutboundHandshake extends RTMPHandshake {
         log.debug("decodeServerResponse1");
         IoBuffer response = null;
         // the handshake type byte is not included
-        if (in.hasArray()) {
-            s1 = in.array();
-        } else {
-            s1 = new byte[Constants.HANDSHAKE_SIZE];
-            in.get(s1);
-        }
+        s1 = new byte[Constants.HANDSHAKE_SIZE];
+        in.get(s1);
         //if (log.isTraceEnabled()) {
         //    log.trace("S1: {}", Hex.encodeHexString(serverSig));
         //}
@@ -294,19 +290,26 @@ public class OutboundHandshake extends RTMPHandshake {
      * @param in incoming handshake S2
      * @return true if validation passes and false otherwise
      */
-    public boolean decodeServerResponse2(IoBuffer in) {
+    public boolean decodeServerResponse2(IoBuffer buf) {
+        byte[] s2 = new byte[Constants.HANDSHAKE_SIZE];
+        buf.get(s2);
+        return decodeServerResponse2(s2);
+    }
+
+    /**
+     * Decodes the second server response (S2).
+     * <pre>
+     * S2 = Copy of C1 bytes
+     * </pre>
+     * @param in incoming handshake S2
+     * @return true if validation passes and false otherwise
+     */
+    public boolean decodeServerResponse2(byte[] s2) {
         log.debug("decodeServerResponse2");
-        // the handshake type byte is not included
-        byte[] s2;
-        if (in.hasArray()) {
-            s2 = in.array();
-        } else {
-            s2 = new byte[Constants.HANDSHAKE_SIZE];
-            in.get(s2);
+        // the handshake type byte is not included in s2
+        if (log.isTraceEnabled()) {
+            log.trace("S2: {}\nC1: {}", Hex.encodeHexString(s2), Hex.encodeHexString(c1));
         }
-        //if (log.isTraceEnabled()) {
-        //    log.trace("S2: {}", Hex.encodeHexString(s2));
-        //}
         if (fp9Handshake) {
             if (s2[4] == 0 && s2[5] == 0 && s2[6] == 0 && s2[7] == 0) {
                 log.warn("Server refused signed authentication");

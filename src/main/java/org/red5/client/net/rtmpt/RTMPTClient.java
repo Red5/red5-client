@@ -98,7 +98,9 @@ public class RTMPTClient extends BaseRTMPClientHandler {
                         // if we got S0S1+S2 continue processing
                         if (in.remaining() >= Constants.HANDSHAKE_SIZE) {
                             log.debug("Handshake - client phase 2 - size: {}", in.remaining());
-                            if (handshake.decodeServerResponse2(in)) {
+                            byte[] s2 = new byte[Constants.HANDSHAKE_SIZE];
+                            in.get(s2);
+                            if (handshake.decodeServerResponse2(s2)) {
                                 //                                conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
                                 //                                conn.setStateCode(RTMP.STATE_CONNECTED);
                                 //                                connectionOpened(conn);
@@ -118,7 +120,9 @@ public class RTMPTClient extends BaseRTMPClientHandler {
                     break;
                 case RTMP.STATE_HANDSHAKE:
                     log.debug("Handshake - client phase 2 - size: {}", in.remaining());
-                    if (handshake.decodeServerResponse2(in)) {
+                    byte[] s2 = new byte[Constants.HANDSHAKE_SIZE];
+                    in.get(s2);
+                    if (handshake.decodeServerResponse2(s2)) {
                         //                        conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
                         //                        conn.setStateCode(RTMP.STATE_CONNECTED);
                         //                        connectionOpened(conn);

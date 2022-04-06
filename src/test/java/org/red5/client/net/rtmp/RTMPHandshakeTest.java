@@ -50,9 +50,18 @@ public class RTMPHandshakeTest {
         fillBuffer(serverS0S1S2part2, "RTMP-S0S1S2-02.dat");
     }
 
+    @After
+    public void tearDown() throws Exception {
+        clientC0C1.free();
+        clientC2.free();
+        serverS0S1S2part1.free();
+        serverS0S1S2part2.free();
+    }
+
     private void fillBuffer(IoBuffer buf, String byteDumpFile) throws Exception {
         File f = new File(String.format("%s/target/test-classes/%s", System.getProperty("user.dir"), byteDumpFile));
         FileInputStream fis = new FileInputStream(f);
+        log.info("File: {} length: {}", byteDumpFile, f.length());
         ByteBuffer bb = ByteBuffer.allocate((int) f.length());
         fis.getChannel().read(bb);
         bb.flip();
@@ -60,14 +69,6 @@ public class RTMPHandshakeTest {
         buf.flip();
         log.debug("Filled buffer: {}", buf);
         fis.close();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        clientC0C1.free();
-        clientC2.free();
-        serverS0S1S2part1.free();
-        serverS0S1S2part2.free();
     }
 
     @Test
@@ -94,6 +95,11 @@ public class RTMPHandshakeTest {
         // called initially with null input which triggers creation of C1
         //IoBuffer C1 = hs.doHandshake(null);
         //log.debug("C1: {}", C1);
+        //log.debug("C0C1 bytes: {}", new String(clientC0C1.array()));
+
+        // create C0+C1
+        IoBuffer C1 = ((OutboundHandshake) out).generateClientRequest1();
+        log.debug("C1: {}", C1);
         //log.debug("C0C1 bytes: {}", new String(clientC0C1.array()));
 
         // strip 03 byte
