@@ -20,11 +20,17 @@ public class RTMPClientTest {
     // task timer
     private static Timer timer = new Timer();
 
+    // application name
+    private static String app = "oflaDemo"; //"vod";
+
     // AMS sample
     //    private static String sourceStreamName = "mp4:sample1_1500kbps.f4v";
 
+    // sample video under oflaDemo example app
+    private static String sourceStreamName = "mp4:thx_deep_note_360p.mp4";
+
     // local sample
-    private static String sourceStreamName = "flashContent";
+    //private static String sourceStreamName = "flashContent";
 
     // https://github.com/Red5/red5-client/issues/26
     @Test
@@ -76,7 +82,7 @@ public class RTMPClientTest {
          * client.invoke("loadPlaylist", params, new IPendingServiceCallback() {
          * @Override public void resultReceived(IPendingServiceCall result) { System.out.println(result); } }); } } });
          */
-        client.connect("localhost", 1935, "vod", connectCallback);
+        client.connect("localhost", 1935, app, connectCallback);
 
         do {
             try {

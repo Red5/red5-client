@@ -122,32 +122,38 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                     }
                     // complete the connection regardless of the S2 success or failure
                     completeConnection(session, conn, handshake);
+                } else {
+                    // don't fall through to connected process if we didn't have enough for the handshake
+                    break;
                 }
                 // allow fall-through
             case RTMP.STATE_CONNECTED:
-                IoBuffer message = buffer.getBufferAsIoBuffer();
-                // assuming majority of connections will not be encrypted
-                if (!((RTMPConnection) conn).isEncrypted()) {
-                    Cipher cipher = (Cipher) session.getAttribute(RTMPConnection.RTMPE_CIPHER_IN);
-                    if (cipher != null) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Decrypting message: {}", message);
-                        }
-                        byte[] encrypted = new byte[message.remaining()];
-                        message.get(encrypted);
-                        message.free();
-                        byte[] plain = cipher.update(encrypted);
-                        IoBuffer messageDecrypted = IoBuffer.wrap(plain);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Decrypted buffer: {}", messageDecrypted);
-                        }
-                        nextFilter.messageReceived(session, messageDecrypted);
+                // skip empty buffer
+                if (buffer.getBufferSize() > 0) {
+                    IoBuffer message = buffer.getBufferAsIoBuffer();
+                    // assuming majority of connections will not be encrypted
+                    if (!((RTMPConnection) conn).isEncrypted()) {
+                        log.trace("Receiving message: {}", message);
+                        nextFilter.messageReceived(session, message);
                     } else {
-                        log.warn("Decryption cipher is missing from the session");
+                        Cipher cipher = (Cipher) session.getAttribute(RTMPConnection.RTMPE_CIPHER_IN);
+                        if (cipher != null) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Decrypting message: {}", message);
+                            }
+                            byte[] encrypted = new byte[message.remaining()];
+                            message.get(encrypted);
+                            message.free();
+                            byte[] plain = cipher.update(encrypted);
+                            IoBuffer messageDecrypted = IoBuffer.wrap(plain);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Decrypted buffer: {}", messageDecrypted);
+                            }
+                            nextFilter.messageReceived(session, messageDecrypted);
+                        } else {
+                            log.warn("Decryption cipher is missing from the session");
+                        }
                     }
-                } else {
-                    log.trace("Not decrypting message: {}", obj);
-                    nextFilter.messageReceived(session, obj);
                 }
                 break;
             case RTMP.STATE_ERROR:

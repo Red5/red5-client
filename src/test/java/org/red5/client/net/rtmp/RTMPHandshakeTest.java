@@ -126,7 +126,6 @@ public class RTMPHandshakeTest {
         // send in the combined server handshake, this creates C2
         C2 = out.decodeServerResponse1(S0S1S2);
         log.debug("C2 (third): {}", C2);
-
     }
 
     @Test
