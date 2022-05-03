@@ -347,11 +347,10 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
     @Override
     protected void onChunkSize(RTMPConnection conn, Channel channel, Header source, ChunkSize chunkSize) {
         log.debug("onChunkSize");
-        // set read and write chunk sizes
+        // chunkSize was updated by peer, update our read-chunksize
         RTMP state = conn.getState();
         state.setReadChunkSize(chunkSize.getSize());
-        state.setWriteChunkSize(chunkSize.getSize());
-        log.info("ChunkSize configured: {}", chunkSize);
+        log.info("Incoming chunkSize configured: {}", chunkSize);
     }
 
     /** {@inheritDoc} */
